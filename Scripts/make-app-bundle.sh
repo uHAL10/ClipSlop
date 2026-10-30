@@ -6,8 +6,8 @@
 # .build/debug/ClipSlop, which LaunchServices never sees — so no amount of correct
 # metadata would make an intent show up in Spotlight or Shortcuts.
 #
-# The bundle ships as `com.mekedron.clipslop.dev`, NOT the release identifier:
-#   - an installed /Applications/ClipSlop.app already owns com.mekedron.clipslop,
+# The bundle ships as `io.github.uhal10.clipslop.dev`, NOT the release identifier:
+#   - an installed /Applications/ClipSlop.app already owns io.github.uhal10.clipslop,
 #     and LaunchServices would resolve intents to *that* app instead of this build
 #   - two apps sharing an identifier fight over global hotkeys and the menu bar
 #   - a separate identifier gets its own TCC grants, leaving the release app's
@@ -49,7 +49,7 @@ BUILD_DIR=".build/${ARCH}-apple-macosx/${CONFIG}"
 # an installed release copy of ClipSlop untouched.
 APP_PATH="$HOME/Applications/ClipSlop-dev.app"
 CONTENTS="$APP_PATH/Contents"
-DEV_BUNDLE_ID="com.mekedron.clipslop.dev"
+DEV_BUNDLE_ID="io.github.uhal10.clipslop.dev"
 
 if [ ! -f "$BUILD_DIR/ClipSlop" ]; then
     echo "✗ No binary at $BUILD_DIR/ClipSlop — run 'swift build' first." >&2

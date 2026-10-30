@@ -1,0 +1,54 @@
+name: Build personal release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    if: github.repository == 'uHAL10/ClipSlop'
+    runs-on: macos-15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Import signing identity
+        env:
+          CERTIFICATE: ${{ secrets.CLIPSLOP_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.CLIPSLOP_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          : "${CERTIFICATE:?Missing CLIPSLOP_CERTIFICATE_BASE64}"
+          : "${CERTIFICATE_PASSWORD:?Missing CLIPSLOP_CERTIFICATE_PASSWORD}"
+          KEYCHAIN="$RUNNER_TEMP/clipslop-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 32)"
+          CERTIFICATE_PATH="$RUNNER_TEMP/clipslop-signing.p12"
+          printf '%s' "$CERTIFICATE" | base64 --decode > "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$CERTIFICATE_PATH" -k "$KEYCHAIN" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
+          security list-keychains -d user -s "$KEYCHAIN"
+          security find-certificate -c ClipSlop-Dev -p "$KEYCHAIN" > "$RUNNER_TEMP/clipslop-signing.pem"
+          sudo security add-trusted-cert -d -r trustRoot -p codeSign -k /Library/Keychains/System.keychain "$RUNNER_TEMP/clipslop-signing.pem"
+          security find-identity -v -p codesigning "$KEYCHAIN" | grep '"ClipSlop-Dev"'
+          echo "CLIPSLOP_SIGNING_KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
+
+      - name: Build signed DMG
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          ./Scripts/build-release.sh "$VERSION"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: .build/distribution/${{ env.VERSION }}/ClipSlop-${{ env.VERSION }}-macOS.dmg
+          generate_release_notes: true

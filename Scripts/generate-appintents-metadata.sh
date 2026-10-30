@@ -169,7 +169,7 @@ fi
 
 # An empty `actions` map means extraction silently found nothing — the exact
 # failure this script exists to make visible.
-ACTION_COUNT="$(/usr/bin/python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1])).get("actions", {})))' "$ACTIONS_DATA" 2>/dev/null || echo 0)"
+ACTION_COUNT="$(swift -e 'import Foundation; let data = try Data(contentsOf: URL(fileURLWithPath: CommandLine.arguments[1])); let json = try JSONSerialization.jsonObject(with: data) as! [String: Any]; print((json["actions"] as! [String: Any]).count)' "$ACTIONS_DATA")"
 if [ "$ACTION_COUNT" -eq 0 ]; then
     echo "✗ Metadata was written but contains 0 intents — extraction found nothing." >&2
     echo "  The app would build and ship with no App Intents at all." >&2

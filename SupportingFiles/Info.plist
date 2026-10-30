@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.mekedron.clipslop</string>
+    <string>io.github.uhal10.clipslop</string>
     <key>CFBundleName</key>
     <string>ClipSlop</string>
     <key>CFBundleDisplayName</key>
@@ -20,10 +20,6 @@
     <string>AppIcon</string>
     <key>LSUIElement</key>
     <true/>
-    <key>SUFeedURL</key>
-    <string>https://raw.githubusercontent.com/mekedron/clipslop/main/appcast-v2.xml</string>
-    <key>SUPublicEDKey</key>
-    <string>22HdaJksDsRyOwfyMqARsF0on0MXQdfmCSeGTk+EaCU=</string>
     <key>NSScreenCaptureUsageDescription</key>
     <string>ClipSlop needs screen capture access to recognize text from screen regions (OCR).</string>
     <key>NSAccessibilityUsageDescription</key>

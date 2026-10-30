@@ -117,8 +117,6 @@ final class AppState {
     /// history step (e.g. the "Markdown (AI)" original-text conversion).
     @ObservationIgnored private var pendingStepID: UUID?
 
-    /// First-launch v1→v2 migration gating for iCloud sync. See `setup()`.
-    @ObservationIgnored private var cloudSyncMigrationObserver: NSObjectProtocol?
     @ObservationIgnored private var cloudSyncStarted = false
 
     /// The last non-ClipSlop app that was frontmost.
@@ -336,28 +334,8 @@ final class AppState {
         }
 
         if settings.iCloudSyncEnabled {
-            // Defer 2s so the menu bar UI renders first. Additionally, on the
-            // first v2 launch we must wait for V1MigrationService's iCloud
-            // step before starting sync — otherwise CloudSyncService races and
-            // uploads an empty file to the NEW container before the v1 file
-            // is copied over. Subsequent launches see the flag set and start
-            // immediately after the 2s UI delay.
-            if UserDefaults.standard.bool(forKey: V1MigrationService.iCloudStepKey) {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-                    self?.startCloudSyncServicesIfNeeded()
-                }
-            } else {
-                cloudSyncMigrationObserver = NotificationCenter.default.addObserver(
-                    forName: V1MigrationService.iCloudMigrationDidFinish,
-                    object: nil,
-                    queue: .main
-                ) { [weak self] _ in
-                    self?.startCloudSyncServicesIfNeeded()
-                }
-                // Safety timeout — start anyway after 30s if migration hangs.
-                DispatchQueue.main.asyncAfter(deadline: .now() + 30.0) { [weak self] in
-                    self?.startCloudSyncServicesIfNeeded()
-                }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                self?.startCloudSyncServicesIfNeeded()
             }
         }
 
@@ -400,15 +378,9 @@ final class AppState {
         PromptSpotlightIndexer.shared.start(promptStore: promptStore)
     }
 
-    /// Idempotent — safe to call from both the migration-finished notification
-    /// observer and the 30s safety timeout.
     private func startCloudSyncServicesIfNeeded() {
         guard !cloudSyncStarted else { return }
         cloudSyncStarted = true
-        if let obs = cloudSyncMigrationObserver {
-            NotificationCenter.default.removeObserver(obs)
-            cloudSyncMigrationObserver = nil
-        }
         syncService.start()
         quickAccessSyncService.start()
     }

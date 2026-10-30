@@ -24,7 +24,7 @@ if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
     exit 0
 fi
 
-SERVICE="com.mekedron.clipslop"
+SERVICE="io.github.uhal10.clipslop"
 
 # Find an Anthropic provider API key in Keychain
 ACCOUNT=$(security dump-keychain -a 2>/dev/null \

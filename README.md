@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/mekedron/ClipSlop/releases/latest">Download</a> &nbsp;·&nbsp;
+  <a href="https://github.com/uHAL10/ClipSlop/releases/latest">Download</a> &nbsp;·&nbsp;
   <a href="https://buymeacoffee.com/mekedron">Buy Me a Coffee ☕</a>
 </p>
 
@@ -224,47 +224,35 @@ Fully customizable — add your own prompts, folders, mnemonics, and global shor
 
 ## Install
 
-### Homebrew
+このフォークは macOS 15 以降に対応しています。[Releases](https://github.com/uHAL10/ClipSlop/releases/latest) から DMG をダウンロードし、`ClipSlop.app` を Applications に移動してください。自己署名されており Apple の公証は受けていないため、初回起動時は「システム設定 → プライバシーとセキュリティ」で起動を許可してください。
+
+元の ClipSlop の設定を使わずに始める場合は、インストール前に `~/.clipslop` と `~/Library/Application Support/ClipSlop` を別の場所にバックアップしてください。このフォークの設定と API キーは独自の識別子で管理します。元の自動更新は無効です。更新時は Releases から新しい DMG を取得してください。
+
+### Release
+
+`v2.3.2` のようなタグをプッシュすると、GitHub Actions が自己署名した DMG をビルドして Releases に公開します。署名鍵は GitHub Secrets に保存されています。
 
 ```bash
-brew tap mekedron/tap
-brew install --cask clipslop
+git tag v2.3.2
+git push origin v2.3.2
 ```
 
-### Download
-
-Grab the latest `.dmg` from [Releases](https://github.com/mekedron/ClipSlop/releases/latest). Drag to Applications.
-
-#### Opening the app
-
-Drag `ClipSlop.app` to **Applications** and double-click. That's it — no Gatekeeper warning, no "Open Anyway" dance.
-
-ClipSlop is signed with an Apple Developer ID and notarised by Apple, so macOS opens it like any other app.
-
-**The app is safe, and you don't have to take my word for it.** The source is fully open, and every release is built and signed automatically by [GitHub Actions](https://github.com/mekedron/ClipSlop/actions) straight from this repository — nothing is added to the binary that isn't here. You can check the signature yourself:
-
-```bash
-spctl -a -vvv -t exec /Applications/ClipSlop.app
-# ClipSlop.app: accepted
-# source=Notarized Developer ID
-```
-
-> **Upgrading from v1.x?** Those releases were unsigned (v2.0.0 was the first signed one). macOS ties Accessibility and Screen Recording permissions to the app's signature, so the first signed version you install may need those granted once more: **System Settings → Privacy & Security → Accessibility**, remove any stale ClipSlop entry with **−**, then re-add `ClipSlop.app` with **+**. Repeat under **Screen Recording** if you use OCR. Your prompts, providers, and settings are untouched — and this is a one-time migration, not a per-update chore.
+手元でビルドする場合は `./Scripts/build-release.sh 2.3.2` を実行します。署名には `ClipSlop-Dev` 証明書が必要です。
 
 ### Build from source
 
 ```bash
-git clone https://github.com/mekedron/ClipSlop.git
+git clone https://github.com/uHAL10/ClipSlop.git
 cd ClipSlop
 swift build
 # Or open Package.swift in Xcode → Run
 ```
 
-Requires macOS 14+ and Xcode with Swift 6.0+.
+Requires macOS 15+ and Xcode with Swift 6.0+.
 
 ## Requirements
 
-- macOS 14.0+
+- macOS 15.0+
 - An AI provider: sign in with ChatGPT (free), API key (Anthropic, OpenAI), local Ollama, or CLI tools
 
 ## Contributing

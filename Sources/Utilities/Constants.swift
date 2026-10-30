@@ -6,10 +6,10 @@ enum Constants {
     /// Keychain service name. Deliberately the *release* identifier even in dev
     /// builds, so a locally-bundled ClipSlop can reuse the API keys already
     /// stored on this machine instead of demanding they be re-entered.
-    static let bundleIdentifier = "com.mekedron.clipslop"
+    static let bundleIdentifier = "io.github.uhal10.clipslop"
 
     /// True when running from the locally-built dev bundle (see Scripts/make-app-bundle.sh),
-    /// which ships as `com.mekedron.clipslop.dev` so it gets its own LaunchServices
+    /// which ships as `io.github.uhal10.clipslop.dev` so it gets its own LaunchServices
     /// registration and TCC identity instead of colliding with an installed release.
     static let isDevBuild: Bool = Bundle.main.bundleIdentifier?.hasSuffix(".dev") == true
 

@@ -10,9 +10,6 @@ struct ClipSlopApp: App {
     @State private var menuBarVisible: Bool
 
     init() {
-        // Must run BEFORE AppState/AppSettings touch UserDefaults or Keychain.
-        V1MigrationService.runSynchronousMigration()
-
         let state = AppState()
         let upd = SparkleUpdater()
         _appState = State(wrappedValue: state)
@@ -27,10 +24,6 @@ struct ClipSlopApp: App {
         }
         upd.start()
         state.setup()
-
-        Task.detached(priority: .utility) {
-            await V1MigrationService.runICloudMigration()
-        }
     }
 
     var body: some Scene {

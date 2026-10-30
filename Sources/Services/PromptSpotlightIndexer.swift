@@ -24,8 +24,8 @@ final class PromptSpotlightIndexer {
     private static let schemaVersion = 1
 
     /// Failures here are non-fatal by design, so they must at least be visible:
-    ///   log stream --predicate 'subsystem == "com.mekedron.clipslop"'
-    private static let log = Logger(subsystem: "com.mekedron.clipslop", category: "spotlight")
+    ///   log stream --predicate 'subsystem == "io.github.uhal10.clipslop"'
+    private static let log = Logger(subsystem: Constants.bundleIdentifier, category: "spotlight")
 
     private var observer: NSObjectProtocol?
     private var debounceTask: Task<Void, Never>?
