@@ -601,3 +601,32 @@
 "settings.magic.skill.done.message" = "Agent Skill er nu installeret i %@.";
 "settings.magic.skill.done.ok" = "OK";
 "settings.magic.skill.error.title" = "Kunne ikke installere Agent Skill";
+
+/* Find bar */
+"popup.find.count" = "%1$d af %2$d";
+"popup.find.no_matches" = "Ingen resultater";
+
+/* Editor toolbar */
+"editor.bold" = "Bold";
+"editor.italic" = "Italic";
+"editor.underline" = "Underline";
+"editor.strikethrough" = "Strikethrough";
+"editor.inline_code" = "Inline code";
+"editor.heading" = "Heading %d";
+"editor.bullet_list" = "Bullet list";
+"editor.numbered_list" = "Numbered list";
+"editor.blockquote" = "Blockquote";
+"editor.code_block" = "Code block";
+"editor.insert_link" = "Insert link";
+"editor.insert_image" = "Insert image";
+"editor.horizontal_rule" = "Horizontal rule";
+"editor.redo" = "Redo";
+"editor.preview" = "Preview";
+"editor.edit_link" = "Edit Link";
+"editor.link_text_optional" = "Text (optional)";
+"editor.remove_link" = "Remove Link";
+"editor.update" = "Update";
+"editor.insert" = "Insert";
+"editor.text_color" = "Text color";
+"editor.highlight" = "Highlight";
+"editor.html_source" = "HTML Source";

@@ -538,7 +538,7 @@ struct PromptEditorView: View {
                         Text(loc.t("settings.prompts.editor.display_mode_default"))
                             .tag(EditorMode?.none)
                         Divider()
-                        Text("Plain text").tag(EditorMode?.some(.plainText))
+                        Text(loc.t("settings.general.behavior.editor_mode.plain")).tag(EditorMode?.some(.plainText))
                         Text("HTML").tag(EditorMode?.some(.html))
                         Text("Markdown").tag(EditorMode?.some(.markdown))
                     }

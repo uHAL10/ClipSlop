@@ -19,6 +19,7 @@ struct MarkdownEngineView: View {
     var findBarState: FindBarState?
 
     @State private var bridge = MarkdownEngineBridge()
+    private let loc = Loc.shared
 
     var body: some View {
         VStack(spacing: 0) {
@@ -64,22 +65,22 @@ struct MarkdownEngineView: View {
 
     private var toolbar: some View {
         HStack(spacing: 2) {
-            toolbarButton("B", icon: "bold", help: "Bold ⌘B") { bridge.post(\.applyBoldRequest) }
+            toolbarButton("B", icon: "bold", help: loc.t("editor.bold") + " ⌘B") { bridge.post(\.applyBoldRequest) }
                 .fontWeight(.bold)
-            toolbarButton("I", icon: "italic", help: "Italic ⌘I") { bridge.post(\.applyItalicRequest) }
+            toolbarButton("I", icon: "italic", help: loc.t("editor.italic") + " ⌘I") { bridge.post(\.applyItalicRequest) }
                 .italic()
-            toolbarButton("S", icon: "strikethrough", help: "Strikethrough") { bridge.post(\.applyStrikethroughRequest) }
+            toolbarButton("S", icon: "strikethrough", help: loc.t("editor.strikethrough")) { bridge.post(\.applyStrikethroughRequest) }
                 .strikethrough()
-            toolbarButton(nil, icon: "chevron.left.forwardslash.chevron.right", help: "Inline code") {
+            toolbarButton(nil, icon: "chevron.left.forwardslash.chevron.right", help: loc.t("editor.inline_code")) {
                 bridge.post(\.applyInlineCodeRequest)
             }
 
             toolbarSeparator
 
             Menu {
-                Button("Heading 1") { bridge.post(\.applyHeadingRequest, userInfo: ["level": 1]) }
-                Button("Heading 2") { bridge.post(\.applyHeadingRequest, userInfo: ["level": 2]) }
-                Button("Heading 3") { bridge.post(\.applyHeadingRequest, userInfo: ["level": 3]) }
+                Button(loc.t("editor.heading", 1)) { bridge.post(\.applyHeadingRequest, userInfo: ["level": 1]) }
+                Button(loc.t("editor.heading", 2)) { bridge.post(\.applyHeadingRequest, userInfo: ["level": 2]) }
+                Button(loc.t("editor.heading", 3)) { bridge.post(\.applyHeadingRequest, userInfo: ["level": 3]) }
             } label: {
                 Text("H")
                     .font(.system(.body, design: .default))
@@ -93,28 +94,28 @@ struct MarkdownEngineView: View {
 
             toolbarSeparator
 
-            toolbarButton(nil, icon: "list.bullet", help: "Bullet list") { bridge.post(\.applyUnorderedListRequest) }
-            toolbarButton(nil, icon: "list.number", help: "Numbered list") { bridge.post(\.applyOrderedListRequest) }
-            toolbarButton(nil, icon: "text.quote", help: "Blockquote") { bridge.post(\.applyBlockquoteRequest) }
-            toolbarButton(nil, icon: "curlybraces", help: "Code block") { bridge.post(\.applyCodeBlockRequest) }
+            toolbarButton(nil, icon: "list.bullet", help: loc.t("editor.bullet_list")) { bridge.post(\.applyUnorderedListRequest) }
+            toolbarButton(nil, icon: "list.number", help: loc.t("editor.numbered_list")) { bridge.post(\.applyOrderedListRequest) }
+            toolbarButton(nil, icon: "text.quote", help: loc.t("editor.blockquote")) { bridge.post(\.applyBlockquoteRequest) }
+            toolbarButton(nil, icon: "curlybraces", help: loc.t("editor.code_block")) { bridge.post(\.applyCodeBlockRequest) }
 
             toolbarSeparator
 
-            toolbarButton(nil, icon: "link", help: "Insert link") { bridge.post(\.applyLinkRequest) }
-            toolbarButton(nil, icon: "minus", help: "Horizontal rule") { bridge.post(\.applyHorizontalRuleRequest) }
+            toolbarButton(nil, icon: "link", help: loc.t("editor.insert_link")) { bridge.post(\.applyLinkRequest) }
+            toolbarButton(nil, icon: "minus", help: loc.t("editor.horizontal_rule")) { bridge.post(\.applyHorizontalRuleRequest) }
 
             toolbarSeparator
 
-            toolbarButton(nil, icon: "arrow.uturn.backward", help: "Undo ⌘Z") {
+            toolbarButton(nil, icon: "arrow.uturn.backward", help: loc.t("magic.toast.undo") + " ⌘Z") {
                 NSApp.sendAction(Selector(("undo:")), to: nil, from: nil)
             }
-            toolbarButton(nil, icon: "arrow.uturn.forward", help: "Redo ⇧⌘Z") {
+            toolbarButton(nil, icon: "arrow.uturn.forward", help: loc.t("editor.redo") + " ⇧⌘Z") {
                 NSApp.sendAction(Selector(("redo:")), to: nil, from: nil)
             }
 
             Spacer()
 
-            Text("Markdown (Styled)")
+            Text("Markdown (\(loc.t("settings.general.behavior.markdown_editor.styled")))")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

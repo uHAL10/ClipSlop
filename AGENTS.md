@@ -54,5 +54,5 @@ three paragraphs, the incident that prompted it none.
   fallback, never a crash or a silent drop.
 - `prompts.json` is a derived mirror of `workflows/library/**`; never edit
   it directly. API keys live in the Keychain, never in the engine tree.
-- New user-facing strings need keys in all 17 `.lproj` files.
+- New user-facing strings need keys in all 18 `.lproj` files.
 - Conventional commits.

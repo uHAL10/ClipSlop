@@ -2,7 +2,7 @@ import Foundation
 
 enum AppLanguage: String, CaseIterable, Identifiable, Codable, Sendable {
     case en, de, ru, pl, cs, fr, es, fi, sv, nb
-    case it, pt, nl, uk, ro, hu, da
+    case it, pt, nl, uk, ro, hu, da, ja
 
     var id: String { rawValue }
 
@@ -25,6 +25,7 @@ enum AppLanguage: String, CaseIterable, Identifiable, Codable, Sendable {
         case .ro: "Română"
         case .hu: "Magyar"
         case .da: "Dansk"
+        case .ja: "日本語"
         }
     }
 
@@ -47,6 +48,7 @@ enum AppLanguage: String, CaseIterable, Identifiable, Codable, Sendable {
         case .ro: "🇷🇴"
         case .hu: "🇭🇺"
         case .da: "🇩🇰"
+        case .ja: "🇯🇵"
         }
     }
 

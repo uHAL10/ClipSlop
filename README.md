@@ -137,7 +137,7 @@ Open it with **`⌃⌘⌥P`** (reconfigurable in Settings → General → Keyboa
 - **Full library control** — create / edit / delete prompts, create / rename / delete folders, move prompts between folders, assign or clear the two per-prompt global shortcut slots (Inline Run, Run in Editor), and set per-prompt display mode, the "select all before capture" option, and provider.
 - **Magic Button engine control** — read and edit the `~/.clipslop/` engine files (workflow cards, core files, config.yaml, model routing) with every write validated by the engine's own parser before saving, and debug presses from the contentless traces ("why did my press show chips?"). API keys stay out of reach.
 - **Works with tool-calling providers** — OpenAI (API key), OpenAI (Sign In / ChatGPT), Anthropic, Ollama, and OpenAI-compatible. The CLI Tool provider isn't supported; the window shows a notice to switch. A provider switcher in the header lets you pick one and jump to Provider Settings.
-- Frosted, always-on-top panel. The chat input reuses the `⌘K` quick-instruction field (Enter sends, Shift+Enter for a newline, Esc closes). Fully localized into all 17 supported languages.
+- Frosted, always-on-top panel. The chat input reuses the `⌘K` quick-instruction field (Enter sends, Shift+Enter for a newline, Esc closes). The interface supports 18 languages; some tool activity and proposal details remain in English.
 
 ## Features
 
@@ -271,7 +271,7 @@ Requires macOS 14+ and Xcode with Swift 6.0+.
 
 ### Pre-commit hooks (required)
 
-ClipSlop ships with a pre-commit hook that blocks commits when any localization key is missing in any of the 16 translated languages. **Install it once after cloning** — `.git/hooks/` is not versioned, so the hook is not active out of the box:
+ClipSlop ships with a pre-commit hook that blocks commits when any localization key is missing in any of the 17 translated languages. **Install it once after cloning** — `.git/hooks/` is not versioned, so the hook is not active out of the box:
 
 ```bash
 ./Scripts/install-hooks.sh
@@ -280,7 +280,7 @@ ClipSlop ships with a pre-commit hook that blocks commits when any localization 
 What the hook does:
 
 - Runs only when a `*.lproj/Localizable.strings` file is in the commit.
-- Compares every key in `en.lproj/Localizable.strings` against the other 16 languages.
+- Compares every key in `en.lproj/Localizable.strings` against the other 17 languages.
 - Blocks the commit if any translation is missing, and prints the offending keys per language.
 
 To check translations manually at any time:

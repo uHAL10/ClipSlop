@@ -112,6 +112,7 @@ enum ScreenCaptureService {
             }
             request.recognitionLevel = .accurate
             request.usesLanguageCorrection = true
+            request.automaticallyDetectsLanguage = true
 
             let handler = VNImageRequestHandler(cgImage: image, options: [:])
             do {

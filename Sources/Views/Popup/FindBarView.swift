@@ -112,6 +112,7 @@ final class FindBarState {
 struct FindBarView: View {
     let findBarState: FindBarState
     @FocusState private var isSearchFieldFocused: Bool
+    private let loc = Loc.shared
 
     var body: some View {
         HStack(spacing: 8) {
@@ -121,7 +122,7 @@ struct FindBarView: View {
                     .foregroundStyle(.secondary)
                     .font(.caption)
 
-                TextField("Find...", text: Bindable(findBarState).searchQuery)
+                TextField(loc.t("popup.hint.find"), text: Bindable(findBarState).searchQuery)
                     .textFieldStyle(.plain)
                     .font(.system(.body, design: .default))
                     .focused($isSearchFieldFocused)
@@ -157,12 +158,12 @@ struct FindBarView: View {
             // Match count
             if !findBarState.searchQuery.isEmpty {
                 if findBarState.totalMatches > 0 {
-                    Text("\(findBarState.currentMatchIndex + 1) of \(findBarState.totalMatches)")
+                    Text(loc.t("popup.find.count", findBarState.currentMatchIndex + 1, findBarState.totalMatches))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
                 } else {
-                    Text("No matches")
+                    Text(loc.t("popup.find.no_matches"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -190,7 +191,7 @@ struct FindBarView: View {
             .disabled(findBarState.totalMatches == 0)
 
             // Done button
-            Button("Done") {
+            Button(loc.t("popup.done")) {
                 findBarState.dismiss()
             }
             .buttonStyle(.bordered)

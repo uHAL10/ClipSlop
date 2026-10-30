@@ -372,6 +372,7 @@ struct MarkdownEditorView: View {
     @State private var showPreview = false
     @State private var showImagePicker = false
     @State private var editorContext = MarkdownEditorContext()
+    private let loc = Loc.shared
 
     var body: some View {
         VStack(spacing: 0) {
@@ -426,22 +427,22 @@ struct MarkdownEditorView: View {
     private var toolbar: some View {
         HStack(spacing: 2) {
             // Text style
-            toolbarButton("B", icon: "bold", help: "Bold ⌘B") {
+            toolbarButton("B", icon: "bold", help: loc.t("editor.bold") + " ⌘B") {
                 editorContext.wrapSelection(prefix: "**", suffix: "**")
             }
             .fontWeight(.bold)
 
-            toolbarButton("I", icon: "italic", help: "Italic ⌘I") {
+            toolbarButton("I", icon: "italic", help: loc.t("editor.italic") + " ⌘I") {
                 editorContext.wrapSelection(prefix: "*", suffix: "*")
             }
             .italic()
 
-            toolbarButton("S", icon: "strikethrough", help: "Strikethrough ⇧⌘S") {
+            toolbarButton("S", icon: "strikethrough", help: loc.t("editor.strikethrough") + " ⇧⌘S") {
                 editorContext.wrapSelection(prefix: "~~", suffix: "~~")
             }
             .strikethrough()
 
-            toolbarButton(nil, icon: "chevron.left.forwardslash.chevron.right", help: "Inline code ⌘`") {
+            toolbarButton(nil, icon: "chevron.left.forwardslash.chevron.right", help: loc.t("editor.inline_code") + " ⌘`") {
                 editorContext.wrapSelection(prefix: "`", suffix: "`")
             }
 
@@ -449,9 +450,9 @@ struct MarkdownEditorView: View {
 
             // Headings
             Menu {
-                Button("Heading 1") { editorContext.insertLinePrefix("# ") }
-                Button("Heading 2") { editorContext.insertLinePrefix("## ") }
-                Button("Heading 3") { editorContext.insertLinePrefix("### ") }
+                Button(loc.t("editor.heading", 1)) { editorContext.insertLinePrefix("# ") }
+                Button(loc.t("editor.heading", 2)) { editorContext.insertLinePrefix("## ") }
+                Button(loc.t("editor.heading", 3)) { editorContext.insertLinePrefix("### ") }
             } label: {
                 Text("H")
                     .font(.system(.body, design: .default))
@@ -467,44 +468,44 @@ struct MarkdownEditorView: View {
             toolbarSeparator
 
             // Structure
-            toolbarButton(nil, icon: "list.bullet", help: "Bullet list ⇧⌘L") {
+            toolbarButton(nil, icon: "list.bullet", help: loc.t("editor.bullet_list") + " ⇧⌘L") {
                 editorContext.insertLinePrefix("- ")
             }
 
-            toolbarButton(nil, icon: "list.number", help: "Numbered list ⇧⌘O") {
+            toolbarButton(nil, icon: "list.number", help: loc.t("editor.numbered_list") + " ⇧⌘O") {
                 editorContext.insertLinePrefix("1. ")
             }
 
-            toolbarButton(nil, icon: "text.quote", help: "Blockquote ⌘'") {
+            toolbarButton(nil, icon: "text.quote", help: loc.t("editor.blockquote") + " ⌘'") {
                 editorContext.insertLinePrefix("> ")
             }
 
-            toolbarButton(nil, icon: "curlybraces", help: "Code block ⇧⌘K") {
+            toolbarButton(nil, icon: "curlybraces", help: loc.t("editor.code_block") + " ⇧⌘K") {
                 editorContext.insertCodeBlock()
             }
 
             toolbarSeparator
 
             // Insert
-            toolbarButton(nil, icon: "link", help: "Insert link ⌘K") {
+            toolbarButton(nil, icon: "link", help: loc.t("editor.insert_link") + " ⌘K") {
                 editorContext.insertLink()
             }
 
-            toolbarButton(nil, icon: "photo", help: "Insert image ⇧⌘I") {
+            toolbarButton(nil, icon: "photo", help: loc.t("editor.insert_image") + " ⇧⌘I") {
                 showImagePicker = true
             }
 
-            toolbarButton(nil, icon: "minus", help: "Horizontal rule ⇧⌘H") {
+            toolbarButton(nil, icon: "minus", help: loc.t("editor.horizontal_rule") + " ⇧⌘H") {
                 editorContext.insertHorizontalRule()
             }
 
             toolbarSeparator
 
             // Undo/Redo
-            toolbarButton(nil, icon: "arrow.uturn.backward", help: "Undo ⌘Z") {
+            toolbarButton(nil, icon: "arrow.uturn.backward", help: loc.t("magic.toast.undo") + " ⌘Z") {
                 editorContext.textView?.undoManager?.undo()
             }
-            toolbarButton(nil, icon: "arrow.uturn.forward", help: "Redo ⇧⌘Z") {
+            toolbarButton(nil, icon: "arrow.uturn.forward", help: loc.t("editor.redo") + " ⇧⌘Z") {
                 editorContext.textView?.undoManager?.redo()
             }
 
@@ -514,7 +515,7 @@ struct MarkdownEditorView: View {
             toolbarButton(
                 nil,
                 icon: showPreview ? "pencil" : "eye",
-                help: showPreview ? "Edit" : "Preview"
+                help: showPreview ? loc.t("popup.edit") : loc.t("editor.preview")
             ) {
                 showPreview.toggle()
             }
@@ -522,7 +523,7 @@ struct MarkdownEditorView: View {
             Spacer()
 
             if showPreview {
-                Text("Preview")
+                Text(loc.t("editor.preview"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
@@ -904,6 +905,7 @@ struct HTMLEditorView: View {
     @State private var showLinkSheet = false
     @State private var linkURL = ""
     @State private var linkText = ""
+    private let loc = Loc.shared
 
     var body: some View {
         VStack(spacing: 0) {
@@ -939,18 +941,18 @@ struct HTMLEditorView: View {
     private var linkSheet: some View {
         let isEditing = toolbarState.hasLink
         return VStack(spacing: 12) {
-            Text(isEditing ? "Edit Link" : "Insert Link")
+            Text(loc.t(isEditing ? "editor.edit_link" : "editor.insert_link"))
                 .font(.headline)
             TextField("URL", text: $linkURL)
                 .textFieldStyle(.roundedBorder)
-            TextField("Text (optional)", text: $linkText)
+            TextField(loc.t("editor.link_text_optional"), text: $linkText)
                 .textFieldStyle(.roundedBorder)
             HStack {
-                Button("Cancel") { showLinkSheet = false }
+                Button(loc.t("popup.cancel")) { showLinkSheet = false }
                     .keyboardShortcut(.cancelAction)
 
                 if isEditing {
-                    Button("Remove Link") {
+                    Button(loc.t("editor.remove_link")) {
                         toolbarState.unlink()
                         showLinkSheet = false
                     }
@@ -959,7 +961,7 @@ struct HTMLEditorView: View {
 
                 Spacer()
 
-                Button(isEditing ? "Update" : "Insert") {
+                Button(loc.t(isEditing ? "editor.update" : "editor.insert")) {
                     if let url = URL(string: linkURL), !linkURL.isEmpty {
                         let label = linkText.isEmpty ? nil : linkText
                         toolbarState.addLink(url: url, text: label)
@@ -982,57 +984,57 @@ struct HTMLEditorView: View {
     private var htmlToolbar: some View {
         HStack(spacing: 2) {
             // Text formatting
-            htmlToolbarButton("bold", active: toolbarState.hasBold, help: "Bold ⌘B") {
+            htmlToolbarButton("bold", active: toolbarState.hasBold, help: loc.t("editor.bold") + " ⌘B") {
                 toolbarState.bold()
             }
-            htmlToolbarButton("italic", active: toolbarState.hasItalic, help: "Italic ⌘I") {
+            htmlToolbarButton("italic", active: toolbarState.hasItalic, help: loc.t("editor.italic") + " ⌘I") {
                 toolbarState.italic()
             }
-            htmlToolbarButton("underline", active: toolbarState.hasUnderline, help: "Underline ⌘U") {
+            htmlToolbarButton("underline", active: toolbarState.hasUnderline, help: loc.t("editor.underline") + " ⌘U") {
                 toolbarState.underline()
             }
-            htmlToolbarButton("strikethrough", active: toolbarState.hasStrikethrough, help: "Strikethrough ⇧⌘S") {
+            htmlToolbarButton("strikethrough", active: toolbarState.hasStrikethrough, help: loc.t("editor.strikethrough") + " ⇧⌘S") {
                 toolbarState.strikethrough()
             }
 
             Divider().frame(height: 16).padding(.horizontal, 4)
 
             // Text & background color — styled as toolbar buttons with color dot
-            colorButton(icon: "textformat", color: toolbarState.foregroundColor ?? .primary, help: "Text color") { color in
+            colorButton(icon: "textformat", color: toolbarState.foregroundColor ?? .primary, help: loc.t("editor.text_color")) { color in
                 toolbarState.setForegroundColor(NSColor(color))
             }
-            colorButton(icon: "highlighter", color: toolbarState.backgroundColor ?? .yellow, help: "Highlight") { color in
+            colorButton(icon: "highlighter", color: toolbarState.backgroundColor ?? .yellow, help: loc.t("editor.highlight")) { color in
                 toolbarState.setBackgroundColor(NSColor(color))
             }
 
             Divider().frame(height: 16).padding(.horizontal, 4)
 
             // Lists
-            htmlToolbarButton("list.bullet", active: toolbarState.hasUnorderedList, help: "Bullet list ⇧⌘L") {
+            htmlToolbarButton("list.bullet", active: toolbarState.hasUnorderedList, help: loc.t("editor.bullet_list") + " ⇧⌘L") {
                 toolbarState.unorderedList()
             }
 
             Divider().frame(height: 16).padding(.horizontal, 4)
 
             // Link
-            htmlToolbarButton("link", active: toolbarState.hasLink, help: "Link ⌘K") {
+            htmlToolbarButton("link", active: toolbarState.hasLink, help: loc.t("editor.insert_link") + " ⌘K") {
                 linkURL = "https://"
                 linkText = ""
                 showLinkSheet = true
             }
 
             // Image
-            htmlToolbarButton("photo", active: false, help: "Insert image ⇧⌘I") {
+            htmlToolbarButton("photo", active: false, help: loc.t("editor.insert_image") + " ⇧⌘I") {
                 showImagePicker = true
             }
 
             Divider().frame(height: 16).padding(.horizontal, 4)
 
             // Undo/Redo
-            htmlToolbarButton("arrow.uturn.backward", active: false, help: "Undo ⌘Z") {
+            htmlToolbarButton("arrow.uturn.backward", active: false, help: loc.t("magic.toast.undo") + " ⌘Z") {
                 toolbarState.undo()
             }
-            htmlToolbarButton("arrow.uturn.forward", active: false, help: "Redo ⇧⌘Z") {
+            htmlToolbarButton("arrow.uturn.forward", active: false, help: loc.t("editor.redo") + " ⇧⌘Z") {
                 toolbarState.redo()
             }
 
@@ -1047,11 +1049,11 @@ struct HTMLEditorView: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
-            .help(showSource ? "WYSIWYG" : "HTML Source")
+            .help(showSource ? "WYSIWYG" : loc.t("editor.html_source"))
 
             Spacer()
 
-            Text(showSource ? "HTML Source" : "WYSIWYG")
+            Text(showSource ? loc.t("editor.html_source") : "WYSIWYG")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
