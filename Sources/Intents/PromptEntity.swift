@@ -83,7 +83,7 @@ extension PromptEntity: IndexedEntity {
         return attributes
     }
 
-    static let spotlightDomainIdentifier = "com.mekedron.clipslop.prompt"
+    static let spotlightDomainIdentifier = "\(Constants.bundleIdentifier).prompt"
 
     /// Note that Spotlight ranks indexed items with its own matching against these
     /// keywords — `PromptSearchState.score` is *not* consulted there. Our scoring

@@ -12,7 +12,7 @@
 #   --bundle | -b      Build a real .app, register it with LaunchServices, and
 #                      launch that. REQUIRED for anything involving App Intents,
 #                      Spotlight or Shortcuts — those only see registered bundles.
-#                      Runs as com.mekedron.clipslop.dev with its own data
+#                      Runs as io.github.uhal10.clipslop.dev with its own data
 #                      directory, so it cannot disturb an installed release.
 #   --attach           With --bundle, run the bundle's binary in the foreground
 #                      instead of via `open`, keeping stdout attached. Skips

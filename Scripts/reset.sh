@@ -9,13 +9,12 @@
 set -e
 
 APP_NAME="ClipSlop"
-BUNDLE_ID="com.mekedron.clipslop"
-LEGACY_BUNDLE_ID="com.clipslop.app"
+BUNDLE_ID="io.github.uhal10.clipslop"
 
 echo "Resetting ${APP_NAME} to fresh-install state..."
 echo ""
 
-# 1. Kill the app if running (either bundle ID)
+# 1. Kill the app if running
 if pgrep -x "$APP_NAME" > /dev/null 2>&1; then
     echo "[1/7] Stopping ${APP_NAME}..."
     killall "$APP_NAME" 2>/dev/null || true
@@ -24,17 +23,10 @@ else
     echo "[1/7] ${APP_NAME} is not running"
 fi
 
-# 2. Clear UserDefaults (try all possible domains, current + legacy v1)
+# 2. Clear UserDefaults
 echo "[2/7] Clearing UserDefaults..."
-for domain in "$BUNDLE_ID" "${BUNDLE_ID}.${APP_NAME}" "$LEGACY_BUNDLE_ID" "${LEGACY_BUNDLE_ID}.${APP_NAME}" "$APP_NAME"; do
+for domain in "$BUNDLE_ID" "${BUNDLE_ID}.${APP_NAME}"; do
     defaults delete "$domain" 2>/dev/null && echo "  Deleted domain: ${domain}" || true
-done
-# SPM debug builds may use the executable path as domain
-for plist in ~/Library/Preferences/*clipslop* ~/Library/Preferences/*ClipSlop* ~/Library/Preferences/*mekedron*; do
-    if [ -f "$plist" ]; then
-        echo "  Removing: $plist"
-        rm -f "$plist"
-    fi
 done
 
 # 3. Remove Application Support data (prompts.json, providers.json, migration log)
@@ -47,17 +39,17 @@ else
     echo "[3/7] No Application Support data found"
 fi
 
-# 4. Remove Keychain items (API keys, ChatGPT OAuth tokens) for both bundle IDs
+# 4. Remove Keychain items (API keys, ChatGPT OAuth tokens)
 echo "[4/7] Removing Keychain items..."
-for svc in "$BUNDLE_ID" "$LEGACY_BUNDLE_ID"; do
+for svc in "$BUNDLE_ID"; do
     # Loop because security delete-generic-password only removes one match at a time
     while security delete-generic-password -s "$svc" >/dev/null 2>&1; do :; done
     echo "  Cleared Keychain items for ${svc}"
 done
 
-# 5. Remove iCloud container data (optional) for both bundle IDs
+# 5. Remove iCloud container data
 echo "[5/7] Removing iCloud sync data..."
-for id in "$BUNDLE_ID" "$LEGACY_BUNDLE_ID"; do
+for id in "$BUNDLE_ID"; do
     ICLOUD_DIR=~/Library/"Application Support"/CloudDocs/session/containers/"iCloud.${id}"
     ICLOUD_PLIST="${ICLOUD_DIR}.plist"
     if [ -d "$ICLOUD_DIR" ] || [ -f "$ICLOUD_PLIST" ]; then
@@ -97,7 +89,7 @@ fi
 # fresh-install state — the onboarding flow would run but Accessibility and
 # Screen Recording would still be granted, so the permission steps get skipped.
 echo "[7/7] Resetting privacy permissions..."
-for id in "$BUNDLE_ID" "$DEV_BUNDLE_ID" "$LEGACY_BUNDLE_ID"; do
+for id in "$BUNDLE_ID" "$DEV_BUNDLE_ID"; do
     tccutil reset Accessibility "$id" >/dev/null 2>&1 || true
     tccutil reset ScreenCapture "$id" >/dev/null 2>&1 || true
 done

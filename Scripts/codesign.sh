@@ -5,10 +5,7 @@
 # ad-hoc-signs the binary, and an ad-hoc signature's identity (cdhash) changes
 # on every build, so macOS treats each rebuild as a brand new, untrusted app.
 #
-# Prefers a "Developer ID Application" certificate if one is installed
-# (paid Apple Developer account) since it's trusted automatically and is the
-# same identity used for notarized releases. Falls back to a self-signed
-# "ClipSlop-Dev" cert for contributors without a paid account.
+# Uses the self-signed "ClipSlop-Dev" certificate for this fork.
 #
 # First-time setup without a Developer ID cert:
 #   1. Open Keychain Access
@@ -28,16 +25,18 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-# Auto-detect: prefer a Developer ID Application identity, else the
-# self-signed dev cert.
-DEV_ID_NAME=$(security find-identity -v -p codesigning 2>/dev/null \
-    | grep "Developer ID Application" | head -1 \
-    | sed -E 's/^[[:space:]]*[0-9]+\) [A-F0-9]+ "(.+)"$/\1/')
-CERT_NAME="${DEV_ID_NAME:-ClipSlop-Dev}"
+CERT_NAME="ClipSlop-Dev"
+SIGN_ARGS=(-f -s "$CERT_NAME")
+if [ -n "${CLIPSLOP_SIGNING_KEYCHAIN:-}" ]; then
+    SIGN_ARGS+=(--keychain "$CLIPSLOP_SIGNING_KEYCHAIN")
+fi
 echo "Using signing identity: $CERT_NAME"
 
 # Find binary: prefer Xcode DerivedData, fall back to SPM .build
-XCODE_BIN=$(find ~/Library/Developer/Xcode/DerivedData -path "*/ClipSlop-*/Build/Products/Debug/ClipSlop" -type f 2>/dev/null | head -1)
+XCODE_BIN=""
+if [ -d "$HOME/Library/Developer/Xcode/DerivedData" ]; then
+    XCODE_BIN=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/ClipSlop-*/Build/Products/Debug/ClipSlop" -type f 2>/dev/null | head -1)
+fi
 SPM_BIN="$PROJECT_DIR/.build/debug/ClipSlop"
 
 # Signs a .app bundle inside-out, mirroring the order used by the release
@@ -56,7 +55,7 @@ sign_bundle() {
         return 1
     fi
 
-    if ! security find-certificate -c "$CERT_NAME" login.keychain >/dev/null 2>&1; then
+    if ! security find-certificate -c "$CERT_NAME" >/dev/null 2>&1; then
         echo "✗ Certificate '$CERT_NAME' not found in keychain."
         exit 1
     fi
@@ -64,13 +63,13 @@ sign_bundle() {
     local sparkle="$app/Contents/Frameworks/Sparkle.framework"
     if [ -d "$sparkle" ]; then
         find "$sparkle" -name "*.xpc" -type d -print0 2>/dev/null \
-            | while IFS= read -r -d '' xpc; do codesign -f -s "$CERT_NAME" "$xpc"; done
-        [ -d "$sparkle/Versions/B/Updater.app" ] && codesign -f -s "$CERT_NAME" "$sparkle/Versions/B/Updater.app"
-        [ -f "$sparkle/Versions/B/Autoupdate" ] && codesign -f -s "$CERT_NAME" "$sparkle/Versions/B/Autoupdate"
-        codesign -f -s "$CERT_NAME" "$sparkle"
+            | while IFS= read -r -d '' xpc; do codesign "${SIGN_ARGS[@]}" "$xpc"; done
+        [ -d "$sparkle/Versions/B/Updater.app" ] && codesign "${SIGN_ARGS[@]}" "$sparkle/Versions/B/Updater.app"
+        [ -f "$sparkle/Versions/B/Autoupdate" ] && codesign "${SIGN_ARGS[@]}" "$sparkle/Versions/B/Autoupdate"
+        codesign "${SIGN_ARGS[@]}" "$sparkle"
     fi
 
-    codesign -f -s "$CERT_NAME" \
+    codesign "${SIGN_ARGS[@]}" \
         --entitlements "$PROJECT_DIR/SupportingFiles/ClipSlop.entitlements" \
         "$app"
     echo "✓ Signed bundle with $CERT_NAME: $app"
@@ -84,8 +83,8 @@ sign_binary() {
     fi
 
     # Check if certificate exists in keychain
-    if security find-certificate -c "$CERT_NAME" login.keychain >/dev/null 2>&1; then
-        codesign -f -s "$CERT_NAME" "$bin"
+    if security find-certificate -c "$CERT_NAME" >/dev/null 2>&1; then
+        codesign "${SIGN_ARGS[@]}" "$bin"
         echo "✓ Signed with $CERT_NAME: $bin"
     else
         echo "✗ Certificate '$CERT_NAME' not found in keychain."
