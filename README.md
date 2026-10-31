@@ -230,9 +230,11 @@ Fully customizable — add your own prompts, folders, mnemonics, and global shor
 
 ### Release
 
-`v2.3.2` のようなタグをプッシュすると、GitHub Actions が自己署名した DMG をビルドして Releases に公開します。署名鍵は GitHub Secrets に保存されています。
+`main` の履歴にあるコミットに `v2.3.2` のようなタグをプッシュすると、GitHub Actions が自己署名した DMG をビルドして Releases に公開します。署名鍵は GitHub Secrets に保存されています。
 
 ```bash
+git switch main
+git pull --ff-only origin main
 git tag v2.3.2
 git push origin v2.3.2
 ```
