@@ -84,15 +84,6 @@ enum MarkdownEditorStyle: String, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue }
 }
 
-enum RichTextMode: String, CaseIterable, Identifiable, Sendable {
-    case plainText
-    case html
-    case markdown
-    case markdownAI
-
-    var id: String { rawValue }
-}
-
 @MainActor
 @Observable
 final class AppSettings {
@@ -182,22 +173,6 @@ final class AppSettings {
         didSet { Constants.userDefaults.set(editorMode.rawValue, forKey: "editorMode") }
     }
 
-    var richTextMode: RichTextMode {
-        didSet { Constants.userDefaults.set(richTextMode.rawValue, forKey: "richTextMode") }
-    }
-
-    var markdownAIOnlyRichText: Bool {
-        didSet { Constants.userDefaults.set(markdownAIOnlyRichText, forKey: "markdownAIOnlyRichText") }
-    }
-
-    var useCustomConversionPrompt: Bool {
-        didSet { Constants.userDefaults.set(useCustomConversionPrompt, forKey: "useCustomConversionPrompt") }
-    }
-
-    var customConversionPrompt: String {
-        didSet { Constants.userDefaults.set(customConversionPrompt, forKey: "customConversionPrompt") }
-    }
-
     var suppressPermissionAlert: Bool {
         didSet { Constants.userDefaults.set(suppressPermissionAlert, forKey: "suppressPermissionAlert") }
     }
@@ -260,15 +235,6 @@ final class AppSettings {
     {instruction}
     """
 
-    static let defaultConversionPrompt = """
-    Convert the following HTML to clean, well-structured Markdown. \
-    Extract only meaningful content. Skip all presentational HTML \
-    (layout tables, spacers, style attributes, tracking pixels). \
-    Preserve headings, links, images with alt text, lists, and text formatting (bold, italic). \
-    For data that looks tabular, use Markdown tables. \
-    Output ONLY the Markdown, no explanations or commentary.
-    """
-
     private init() {
         // Load from UserDefaults (didSet does NOT fire during init)
         let defaults = Constants.userDefaults
@@ -300,11 +266,6 @@ final class AppSettings {
             .flatMap(MarkdownViewerStyle.init(rawValue:)) ?? .rendered
         markdownEditor = defaults.string(forKey: "markdownEditor")
             .flatMap(MarkdownEditorStyle.init(rawValue:)) ?? .colored
-        richTextMode = defaults.string(forKey: "richTextMode")
-            .flatMap(RichTextMode.init(rawValue:)) ?? .markdown
-        markdownAIOnlyRichText = defaults.object(forKey: "markdownAIOnlyRichText") as? Bool ?? true
-        useCustomConversionPrompt = defaults.bool(forKey: "useCustomConversionPrompt")
-        customConversionPrompt = defaults.string(forKey: "customConversionPrompt") ?? AppSettings.defaultConversionPrompt
         suppressPermissionAlert = defaults.bool(forKey: "suppressPermissionAlert")
         useDefaultPrompts = defaults.object(forKey: "useDefaultPrompts") as? Bool ?? true
         promptLibraryDefaultsStamp = defaults.string(forKey: "promptLibraryDefaultsStamp")

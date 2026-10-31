@@ -30,22 +30,6 @@ struct HistorySidebarView: View {
                             isSelected: appState.isViewingOriginal
                         )
 
-                        if appState.isViewingOriginal {
-                            Picker("", selection: Bindable(appState).originalViewMode) {
-                                Text("Plain").tag(RichTextMode.plainText)
-                                Text("HTML").tag(RichTextMode.html)
-                                Text("MD").tag(RichTextMode.markdown)
-                                Text("MD (AI)").tag(RichTextMode.markdownAI)
-                            }
-                            .pickerStyle(.segmented)
-                            .controlSize(.mini)
-                            .padding(.horizontal, 4)
-                            .onChange(of: appState.originalViewMode) { _, newMode in
-                                if newMode == .markdownAI {
-                                    appState.convertOriginalWithAI()
-                                }
-                            }
-                        }
                     }
                 }
             }

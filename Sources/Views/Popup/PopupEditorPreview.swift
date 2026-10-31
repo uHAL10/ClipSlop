@@ -17,7 +17,6 @@ struct PopupEditorPreview: View {
             ご確認をお願いします。
             """)
         state.activeEditorMode = .plainText
-        state.originalViewMode = .plainText
         state.promptSearchState.promptStore = state.promptStore
         return state
     }

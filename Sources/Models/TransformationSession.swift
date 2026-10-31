@@ -38,7 +38,6 @@ struct TransformationStep: Identifiable, Sendable {
 struct TransformationSession: Identifiable, Sendable {
     let id: UUID
     let originalText: String
-    let originalHTML: String?
     let inputSource: InputSource
     private(set) var steps: [TransformationStep]
 
@@ -51,13 +50,11 @@ struct TransformationSession: Identifiable, Sendable {
     init(
         id: UUID = UUID(),
         originalText: String,
-        originalHTML: String? = nil,
         inputSource: InputSource = .clipboard,
         steps: [TransformationStep] = []
     ) {
         self.id = id
         self.originalText = originalText
-        self.originalHTML = originalHTML
         self.inputSource = inputSource
         self.steps = steps
     }

@@ -147,46 +147,6 @@ struct GeneralSettingsView: View {
                     .frame(width: 300)
                 }
                 .help(loc.t("settings.general.behavior.markdown_editor_help"))
-                LabeledContent(loc.t("settings.general.behavior.rich_text_mode")) {
-                    Picker("", selection: $settings.richTextMode) {
-                        Text(loc.t("settings.general.behavior.rich_text_mode.plain")).tag(RichTextMode.plainText)
-                        Text(loc.t("settings.general.behavior.rich_text_mode.html")).tag(RichTextMode.html)
-                        Text(loc.t("settings.general.behavior.rich_text_mode.markdown")).tag(RichTextMode.markdown)
-                        Text(loc.t("settings.general.behavior.rich_text_mode.markdown_ai")).tag(RichTextMode.markdownAI)
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(width: 320)
-                }
-                .help(loc.t("settings.general.behavior.rich_text_mode_help"))
-
-                if settings.richTextMode == .markdownAI {
-                    Toggle(loc.t("settings.general.behavior.markdown_ai_only_rich"),
-                           isOn: $settings.markdownAIOnlyRichText)
-                        .help(loc.t("settings.general.behavior.markdown_ai_only_rich_help"))
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text(loc.t("settings.general.behavior.conversion_prompt"))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Button(loc.t("settings.general.behavior.reset_default")) {
-                                settings.customConversionPrompt = AppSettings.defaultConversionPrompt
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.mini)
-                            .disabled(settings.customConversionPrompt == AppSettings.defaultConversionPrompt)
-                        }
-                        TextEditor(text: $settings.customConversionPrompt)
-                            .font(.system(.caption, design: .monospaced))
-                            .frame(height: 80)
-                            .scrollContentBackground(.hidden)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(.quaternary)
-                            )
-                    }
-                }
             }
 
             Section(loc.t("settings.general.adhoc")) {

@@ -281,28 +281,6 @@ struct PopupContentView: View {
 
             Spacer()
 
-            if appState.isViewingOriginal {
-                Picker(loc.t("popup.source"), selection: Bindable(appState).originalViewMode) {
-                    Text(loc.t("settings.general.behavior.rich_text_mode.plain")).tag(RichTextMode.plainText)
-                    Text("HTML").tag(RichTextMode.html)
-                    Text("Markdown").tag(RichTextMode.markdown)
-                    Text("Markdown (AI)").tag(RichTextMode.markdownAI)
-                }
-                .frame(width: 160)
-                .onChange(of: appState.originalViewMode) { _, newMode in
-                    if newMode == .markdownAI {
-                        appState.convertOriginalWithAI()
-                    }
-                    // Sync display format to match source
-                    switch newMode {
-                    case .plainText: appState.activeEditorMode = .plainText
-                    case .html: appState.activeEditorMode = .html
-                    case .markdown, .markdownAI:
-                        appState.activeEditorMode = .markdown
-                    }
-                }
-            }
-
             Picker(loc.t("popup.display"), selection: Bindable(appState).activeEditorMode) {
                 Text(loc.t("settings.general.behavior.editor_mode.plain")).tag(EditorMode.plainText)
                 Text("HTML").tag(EditorMode.html)

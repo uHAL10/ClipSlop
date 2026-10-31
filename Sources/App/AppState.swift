@@ -74,7 +74,7 @@ final class AppState {
 
     private var editingDraftKey: String? {
         guard let session = currentSession else { return nil }
-        if isViewingOriginal { return "\(session.id)-original-\(originalViewMode.rawValue)" }
+        if isViewingOriginal { return "\(session.id)-original" }
         let index = selectedHistoryStepIndex ?? (session.steps.count - 1)
         guard session.steps.indices.contains(index) else { return nil }
         return "\(session.id)-\(session.steps[index].id)"
@@ -104,15 +104,10 @@ final class AppState {
     // Pending prompt for Open & Run shortcut
     var pendingPromptNode: PromptNode?
 
-    // Original item view mode (which representation to show for the original text)
-    var originalViewMode: RichTextMode = .plainText
     // Runtime display format (independent from settings default)
     var activeEditorMode: EditorMode = .markdown
     // Display mode for the original item — initialized from settings, updated by user
     var originalDisplayMode: EditorMode = .markdown
-    // Lazy caches for original text conversions
-    @ObservationIgnored private var cachedOriginalMarkdown: String?
-    @ObservationIgnored private var cachedOriginalMarkdownAI: String?
 
     // Settings navigation
     var settingsSelectedTab = 0
@@ -156,7 +151,7 @@ final class AppState {
         guard let session = currentSession else { return "" }
         if let index = selectedHistoryStepIndex {
             if index < 0 {
-                return originalTextForCurrentMode
+                return session.originalText
             }
             if index < session.steps.count {
                 return session.steps[index].outputText
@@ -164,7 +159,7 @@ final class AppState {
         }
         // No steps yet — show original in selected view mode
         if !session.hasSteps {
-            return originalTextForCurrentMode
+            return session.originalText
         }
         return session.currentText
     }
@@ -193,66 +188,6 @@ final class AppState {
         let pendingIndex = session.steps.count - 1
         let viewingIndex = selectedHistoryStepIndex ?? pendingIndex
         return viewingIndex == pendingIndex
-    }
-
-    /// Returns the original text in the representation selected by `originalViewMode`.
-    var originalTextForCurrentMode: String {
-        guard let session = currentSession else { return "" }
-        switch originalViewMode {
-        case .plainText:
-            return session.originalText
-        case .html:
-            return session.originalHTML ?? session.originalText
-        case .markdown:
-            if let cached = cachedOriginalMarkdown { return cached }
-            if let html = session.originalHTML,
-               let md = MarkdownConverter.markdown(fromHTML: html), !md.isEmpty {
-                cachedOriginalMarkdown = md
-                return md
-            }
-            return session.originalText
-        case .markdownAI:
-            // AI conversion is triggered lazily — show cached or original until ready
-            return cachedOriginalMarkdownAI ?? session.originalText
-        }
-    }
-
-    /// Trigger lazy AI conversion for the original item.
-    func convertOriginalWithAI() {
-        guard cachedOriginalMarkdownAI == nil,
-              let session = currentSession,
-              let html = session.originalHTML
-        else { return }
-
-        let prompt = settings.customConversionPrompt.isEmpty
-            ? AppSettings.defaultConversionPrompt
-            : settings.customConversionPrompt
-
-        guard let provider = providerStore.defaultProvider else {
-            openSettingsToProviders()
-            return
-        }
-
-        isProcessing = true
-        streamingText = ""
-        let service = AIServiceFactory.service(for: provider.providerType)
-        let config = provider
-
-        currentTask = Task {
-            do {
-                let result = try await service.process(text: html, systemPrompt: prompt, config: config)
-                cachedOriginalMarkdownAI = result
-                isProcessing = false
-                streamingText = ""
-            } catch {
-                let wasCancelled = error is CancellationError || Task.isCancelled
-                if !wasCancelled {
-                    setError(from: error, providerType: config.providerType)
-                }
-                isProcessing = false
-                streamingText = ""
-            }
-        }
     }
 
     // MARK: - Lifecycle
@@ -531,10 +466,10 @@ final class AppState {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             guard let self else { return }
             let plainText = ClipboardService.getText()
-            let html = ClipboardService.getHTML()
+
 
             if let text = plainText, !text.isEmpty, text != oldClipboard {
-                self.startSession(text: text, html: html, source: .selectedText)
+                self.startSession(text: text, source: .selectedText)
                 return
             }
 
@@ -546,7 +481,7 @@ final class AppState {
 
             // Last resort: use whatever is in the clipboard
             if let text = plainText, !text.isEmpty {
-                self.startSession(text: text, html: html, source: .clipboard)
+                self.startSession(text: text, source: .clipboard)
             } else {
                 self.pendingPromptNode = nil
                 self.showError(Loc.shared.t("error.no_text"))
@@ -558,20 +493,18 @@ final class AppState {
         // Reset all state before showing popup to prevent stale session flash
         resetSessionState()
         currentSession = TransformationSession(originalText: "", inputSource: .clipboard)
-        cachedOriginalMarkdown = nil
-        cachedOriginalMarkdownAI = nil
         activeEditorMode = settings.editorMode
         showPopup()
     }
 
     func triggerFromClipboard() {
         let plainText = ClipboardService.getText()
-        let html = ClipboardService.getHTML()
+
         guard let text = plainText, !text.isEmpty else {
             showError(Loc.shared.t("error.clipboard_empty"))
             return
         }
-        startSession(text: text, html: html, source: .clipboard)
+        startSession(text: text, source: .clipboard)
     }
 
     func triggerFromScreenCapture() {
@@ -611,14 +544,14 @@ final class AppState {
     /// Seam for App Intents, which need to seed the editor from text supplied by
     /// the caller rather than from the clipboard or a selection. `startSession` is
     /// file-private, so the intent extension cannot reach it directly.
-    func startSessionForIntent(text: String, html: String? = nil) {
-        startSession(text: text, html: html, source: .clipboard)
+    func startSessionForIntent(text: String) {
+        startSession(text: text, source: .clipboard)
     }
 
-    private func startSession(text: String, html: String? = nil, source: TransformationSession.InputSource) {
+    private func startSession(text: String, source: TransformationSession.InputSource) {
         currentSession = TransformationSession(
             originalText: text,
-            originalHTML: html,
+
             inputSource: source
         )
         navigationPath = []
@@ -632,11 +565,8 @@ final class AppState {
         adHocPromptText = ""
 
         // Reset lazy caches
-        cachedOriginalMarkdown = nil
-        cachedOriginalMarkdownAI = nil
 
         // Pre-select modes from settings (runtime copies, independent from settings)
-        originalViewMode = settings.richTextMode
         activeEditorMode = settings.editorMode
         originalDisplayMode = settings.editorMode
 
@@ -648,13 +578,6 @@ final class AppState {
             navigateInto(prompt)
         }
 
-        // If markdownAI is pre-selected and we have HTML, trigger lazy conversion
-        if originalViewMode == .markdownAI, html != nil, source != .screenCapture {
-            let shouldConvert = !settings.markdownAIOnlyRichText || html != nil
-            if shouldConvert {
-                convertOriginalWithAI()
-            }
-        }
     }
 
     // MARK: - Navigation
