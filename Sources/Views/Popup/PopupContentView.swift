@@ -123,17 +123,37 @@ struct PopupContentView: View {
 
     @ViewBuilder
     private var textEditor: some View {
-        Group {
+        VStack(spacing: 0) {
+            HStack {
+                Spacer()
+                Picker("", selection: Bindable(appState).isEditing) {
+                    Image(systemName: "eye")
+                        .accessibilityLabel(loc.t("editor.preview"))
+                        .tag(false)
+                    Image(systemName: "pencil")
+                        .accessibilityLabel(loc.t("popup.edit"))
+                        .tag(true)
+                }
+                .pickerStyle(.segmented)
+                .controlSize(.small)
+                .fixedSize()
+                .help("⌘E")
+                .disabled(appState.isProcessing)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 1)
+            Divider()
             switch appState.activeEditorMode {
             case .plainText:
                 MarkdownTextView(text: Bindable(appState).editingText,
                                  editorContext: plainTextEditorContext,
                                  findBarState: appState.findBarState,
-                                 isEditable: !appState.isProcessing)
+                                 isEditable: appState.isEditing && !appState.isProcessing)
             case .html:
                 HTMLEditorView(text: Bindable(appState).editingText,
-                               isEditable: !appState.isProcessing,
+                               isEditable: appState.isEditing && !appState.isProcessing,
                                findBarState: appState.findBarState)
+                    .id(appState.isEditing)
             case .markdown:
                 if appState.isProcessing {
                     switch appState.settings.markdownViewer {
@@ -148,17 +168,18 @@ struct PopupContentView: View {
                         MarkdownTextView(text: .constant(appState.editingText), editorContext: plainTextEditorContext,
                                          findBarState: appState.findBarState, highlighting: .markdown, isEditable: false)
                     case .styled:
-                        MarkdownEngineView(text: .constant(appState.editingText), isEditable: false,
+                        MarkdownEngineView(text: .constant(appState.editingText), isEditable: false, showPreview: .constant(false),
                                            findBarState: appState.findBarState)
                     }
                 } else {
                     switch appState.settings.markdownEditor {
                     case .plain, .colored:
                         MarkdownEditorView(text: Bindable(appState).editingText,
+                                           showPreview: Binding(get: { !appState.isEditing }, set: { appState.isEditing = !$0 }),
                                            findBarState: appState.findBarState,
                                            highlightsMarkdown: appState.settings.markdownEditor == .colored)
                     case .styled:
-                        MarkdownEngineView(text: Bindable(appState).editingText, findBarState: appState.findBarState)
+                        MarkdownEngineView(text: Bindable(appState).editingText, showPreview: Binding(get: { !appState.isEditing }, set: { appState.isEditing = !$0 }), findBarState: appState.findBarState)
                     }
                 }
             }
@@ -557,6 +578,7 @@ struct KeyEventHandler: NSViewRepresentable {
             static let c: UInt16 = 8
             static let v: UInt16 = 9
             static let o: UInt16 = 31
+            static let e: UInt16 = 14
             static let n: UInt16 = 45
             static let z: UInt16 = 6
             static let f: UInt16 = 3
@@ -666,6 +688,11 @@ struct KeyEventHandler: NSViewRepresentable {
             // Esc closes find bar next
             if code == KeyCode.escape && appState.findBarState.isVisible {
                 appState.findBarState.dismiss()
+                return true
+            }
+
+            if hasCmd && !flags.contains(.shift) && !flags.contains(.option) && code == KeyCode.e && !appState.isProcessing {
+                appState.isEditing.toggle()
                 return true
             }
 

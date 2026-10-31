@@ -105,6 +105,7 @@ final class AppState {
     var pendingPromptNode: PromptNode?
 
     // Runtime display format (independent from settings default)
+    var isEditing = false
     var activeEditorMode: EditorMode = .markdown
     // Display mode for the original item — initialized from settings, updated by user
     var originalDisplayMode: EditorMode = .markdown
@@ -490,6 +491,7 @@ final class AppState {
     }
 
     func triggerBlankEditor() {
+        isEditing = false
         // Reset all state before showing popup to prevent stale session flash
         resetSessionState()
         currentSession = TransformationSession(originalText: "", inputSource: .clipboard)
@@ -549,6 +551,7 @@ final class AppState {
     }
 
     private func startSession(text: String, source: TransformationSession.InputSource) {
+        isEditing = false
         currentSession = TransformationSession(
             originalText: text,
 
