@@ -5,6 +5,7 @@ struct CLIToolDefinition: Sendable, Identifiable {
     let displayName: String
     let binaryNames: [String]
     let iconName: String
+    var usesAssetIcon: Bool = true
     /// If true, the service writes output to a temp file via `-o` and reads it back.
     /// Needed for tools (like codex) that dump agent logs to stdout.
     let usesOutputFile: Bool
@@ -56,6 +57,22 @@ struct CLIToolDefinition: Sendable, Identifiable {
                 if let outputFile {
                     args += ["-o", outputFile]
                 }
+                return args
+            }
+        ),
+        CLIToolDefinition(
+            id: "agy",
+            displayName: "Antigravity CLI",
+            binaryNames: ["agy"],
+            iconName: "apple.terminal",
+            usesAssetIcon: false,
+            usesOutputFile: false,
+            buildArguments: { text, systemPrompt, _, model, effort in
+                let combined = systemPrompt.isEmpty ? text : "\(systemPrompt)\n\n\(text)"
+                var args = ["--output-format", "text", "--disable-slash-commands", "--sandbox"]
+                if let model { args += ["--model", model] }
+                if let effort, effort != "none" { args += ["--effort", effort] }
+                args += ["--print=\(combined)"]
                 return args
             }
         ),

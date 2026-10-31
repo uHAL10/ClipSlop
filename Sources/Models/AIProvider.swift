@@ -44,7 +44,7 @@ enum AIProviderType: String, Codable, Sendable, CaseIterable, Identifiable {
     func resolvedIconName(modelID: String? = nil) -> (name: String, isAsset: Bool) {
         if self == .cliTool, let modelID,
            let tool = CLIToolDefinition.find(byID: modelID) {
-            return (tool.iconName, true)
+            return (tool.iconName, tool.usesAssetIcon)
         }
         return (iconName, usesAssetIcon)
     }

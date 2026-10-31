@@ -9,6 +9,22 @@ struct CLIToolInvocationTests {
 
     private var claude: CLIToolDefinition { CLIToolDefinition.find(byID: "claude")! }
 
+    @Test func agyModelListRequiresTabSeparatedRecords() throws {
+        #expect(try CLIToolService.parseAGYModels("model-b\tModel B\nmodel-a\tModel A\n") == ["agy/model-a", "agy/model-b"])
+        #expect(throws: (any Error).self) { try CLIToolService.parseAGYModels("model-a\tModel A\ninvalid") }
+        #expect(throws: (any Error).self) { try CLIToolService.parseAGYModels("") }
+    }
+
+    @Test func agyArgumentsDisableSlashCommandsAndPassModelAndEffort() {
+        let agy = CLIToolDefinition.find(byID: "agy")!
+        #expect(agy.buildArguments("hi", "sys", nil, "model-id", "high") == [
+            "--output-format", "text", "--disable-slash-commands", "--sandbox",
+            "--model", "model-id", "--effort", "high", "--print=sys\n\nhi"
+        ])
+        #expect(!agy.buildArguments("hi", "", nil, nil, "none").contains("--effort"))
+        #expect(agy.buildArguments("--help", "", nil, nil, nil).last == "--print=--help")
+    }
+
     @Test func modelIDSplitsIntoToolAndModel() {
         #expect(CLIToolDefinition.parseModelID("claude") == ("claude", nil))
         #expect(CLIToolDefinition.parseModelID("claude/sonnet") == ("claude", "sonnet"))

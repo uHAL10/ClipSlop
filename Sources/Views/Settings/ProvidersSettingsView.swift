@@ -192,6 +192,7 @@ struct ProviderDetailView: View {
     @State private var cliToolAvailable: Bool = true
     @State private var availableModels: [String] = []
     @State private var isFetchingModels = false
+    @State private var modelFetchError: String?
     @State private var isSigningIn = false
     @State private var signInError: String?
     @State private var signInAuthURL: URL?
@@ -207,6 +208,10 @@ struct ProviderDetailView: View {
         [.anthropic, .openAI, .openAIChatGPT, .ollama, .openAICompatible].contains(provider.providerType)
     }
 
+    private var isAGY: Bool {
+        provider.providerType == .cliTool && CLIToolDefinition.parseModelID(provider.modelID).toolID == "agy"
+    }
+
     var body: some View {
         Form {
             Section(loc.t("settings.providers.provider")) {
@@ -218,6 +223,31 @@ struct ProviderDetailView: View {
             if provider.providerType == .cliTool {
                 Section(loc.t("settings.providers.cli.tool")) {
                     LabeledContent(loc.t("settings.providers.cli.binary_path"), value: baseURL)
+
+                    if isAGY {
+                        HStack {
+                            Picker(loc.t("settings.providers.model_id"), selection: $modelID) {
+                                Text(loc.t("settings.providers.reasoning_effort.unset")).tag("agy")
+                                if modelID != "agy" && !availableModels.contains(modelID) {
+                                    Text(modelID).tag(modelID)
+                                }
+                                ForEach(availableModels, id: \.self) { model in
+                                    Text(String(model.dropFirst(4))).tag(model)
+                                }
+                            }
+                            .onChange(of: modelID) { autoSave() }
+                            if isFetchingModels {
+                                ProgressView().controlSize(.small)
+                            } else {
+                                Button { fetchAGYModels() } label: { Image(systemName: "arrow.clockwise") }
+                                    .buttonStyle(.borderless)
+                                    .help(loc.t("settings.providers.fetch_models"))
+                            }
+                        }
+                        if let modelFetchError {
+                            Text(modelFetchError).foregroundStyle(.red).font(.caption)
+                        }
+                    }
 
                     HStack {
                         if cliToolAvailable {
@@ -542,8 +572,24 @@ struct ProviderDetailView: View {
         apiKey = providerStore.getAPIKey(for: provider)
         if provider.providerType == .cliTool {
             cliToolAvailable = CLIToolDetector.isAvailable(at: provider.baseURL)
+            if isAGY { fetchAGYModels() }
         } else if supportsModelFetch {
             fetchModels()
+        }
+    }
+
+    private func fetchAGYModels() {
+        isFetchingModels = true
+        modelFetchError = nil
+        var config = provider
+        config.baseURL = baseURL
+        Task {
+            do {
+                availableModels = try await CLIToolService().agyModels(config: config)
+            } catch {
+                modelFetchError = error.localizedDescription
+            }
+            isFetchingModels = false
         }
     }
 
@@ -692,10 +738,7 @@ struct AddProviderSheet: View {
             ProviderIconView(providerType: type, size: 22)
                 .foregroundStyle(isSelected ? .blue : .secondary)
         case .cliTool(let result):
-            Image(result.definition.iconName, bundle: .module)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 22, height: 22)
+            ProviderIconView(providerType: .cliTool, modelID: result.definition.id, size: 22)
                 .foregroundStyle(isSelected ? .blue : .secondary)
         }
     }
