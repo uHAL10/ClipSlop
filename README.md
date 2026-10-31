@@ -236,7 +236,7 @@ Fully customizable — add your own prompts, folders, mnemonics, and global shor
 git switch main
 git pull --ff-only origin main
 git tag v2.3.2
-git push origin v2.3.2
+git push --atomic origin main refs/tags/v2.3.2
 ```
 
 手元でビルドする場合は `./Scripts/build-release.sh 2.3.2` を実行します。署名には `ClipSlop-Dev` 証明書が必要です。
