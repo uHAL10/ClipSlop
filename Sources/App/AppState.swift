@@ -491,7 +491,7 @@ final class AppState {
     }
 
     func triggerBlankEditor() {
-        isEditing = false
+        isEditing = true
         // Reset all state before showing popup to prevent stale session flash
         resetSessionState()
         currentSession = TransformationSession(originalText: "", inputSource: .clipboard)
