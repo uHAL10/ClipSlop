@@ -47,6 +47,17 @@ struct ManualEditTests {
         #expect(updated.steps[2].sourceStepID == branched.steps[0].id)
     }
 
+@Test func historyShowsResponseOnlyAfterCompletion() throws {
+    let session = TransformationSession(originalText: "original")
+        .addingStep(promptName: "edit", outputText: "draft")
+        .addingStep(promptName: "prompt", outputText: "", isPending: true)
+    #expect(HistorySidebarView.visibleSteps(in: session).map(\.element.outputText) == ["draft"])
+
+    let pendingID = try #require(session.steps.last?.id)
+    let completed = session.updatingStep(id: pendingID, outputText: "response", isPending: false)
+    #expect(HistorySidebarView.visibleSteps(in: completed).map(\.element.outputText) == ["response", "draft"])
+}
+
     @Test func emptyEditAndProcessing() {
         let state = AppState()
         state.currentSession = TransformationSession(originalText: "text")

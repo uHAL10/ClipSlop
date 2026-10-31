@@ -675,7 +675,9 @@ final class AppState {
         // finishes (see `shouldShowProcessingView`), but chaining a new
         // prompt has to wait so the two runs can't race to mutate the
         // session.
-        guard !isProcessing, var session = currentSession else { return }
+        guard !isProcessing, currentSession != nil else { return }
+        saveEdit()
+        guard var session = currentSession else { return }
 
         #if DEBUG
         // Preview interactions must not send sample text to an AI provider.

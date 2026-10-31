@@ -40,6 +40,28 @@ struct PopupEditorPreviewTests {
         #expect(state.promptSearchState.results.contains { $0.node.id == prompt.id })
     }
 
+@Test(.enabled(if: ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"))
+func promptSavesDraftFromSelectedHistory() throws {
+    let state = AppState()
+    state.currentSession = TransformationSession(originalText: "original")
+        .addingStep(promptName: "first", outputText: "previous")
+        .addingStep(promptName: "later", outputText: "later")
+    state.selectHistoryStep(at: 0)
+    state.editingText = "draft"
+
+    state.applyPrompt(name: "prompt", systemPrompt: "instruction")
+
+    let steps = try #require(state.currentSession?.steps)
+    #expect(steps.count == 4)
+    #expect(steps[2].inputText == "previous")
+    #expect(steps[2].outputText == "draft")
+    #expect(steps[2].sourceStepID == steps[0].id)
+    #expect(steps[3].inputText == "draft")
+    #expect(steps[3].sourceStepID == steps[2].id)
+    #expect(steps[3].outputText == "Preview: prompt\n\ndraft")
+    #expect(!state.hasUnappliedEdit)
+}
+
     @Test(.enabled(if: ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1"))
     func normalRunUsesStandardPreferences() {
         #expect(!Constants.isPreview)

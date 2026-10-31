@@ -9,7 +9,7 @@ struct HistorySidebarView: View {
             VStack(spacing: 2) {
                 if let session = appState.currentSession {
                     // Newest steps first
-                    ForEach(Array(session.steps.enumerated().reversed()), id: \.element.id) { index, step in
+                    ForEach(Self.visibleSteps(in: session), id: \.element.id) { index, step in
                         historyItem(
                             index: index,
                             label: step.promptName,
@@ -18,6 +18,14 @@ struct HistorySidebarView: View {
                             isSelected: isStepSelected(index, session: session),
                             isPending: step.isPending
                         )
+                    }
+
+                    if let index = session.steps.firstIndex(where: \.isPending),
+                       appState.selectedHistoryStepIndex != nil && appState.selectedHistoryStepIndex != index {
+                        Button(loc.t("popup.processing")) {
+                            appState.selectHistoryStep(at: index)
+                        }
+                        .controlSize(.small)
                     }
 
                     // Original text at the bottom
@@ -36,6 +44,10 @@ struct HistorySidebarView: View {
             .padding(6)
         }
         .background(.background.opacity(0.3))
+    }
+
+    static func visibleSteps(in session: TransformationSession) -> [(offset: Int, element: TransformationStep)] {
+        Array(session.steps.enumerated().filter { !$0.element.isPending }.reversed())
     }
 
     private func isStepSelected(_ index: Int, session: TransformationSession) -> Bool {
