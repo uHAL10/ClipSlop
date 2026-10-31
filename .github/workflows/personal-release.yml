@@ -13,6 +13,16 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify release commit is on main
+        run: |
+          git fetch origin refs/heads/main:refs/remotes/origin/main
+          if ! git rev-list --first-parent origin/main | grep -Fx "$GITHUB_SHA" >/dev/null; then
+            echo "::error::Release tags must point to main's first-parent history."
+            exit 1
+          fi
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
