@@ -17,6 +17,8 @@ if [ -e "$OUTPUT" ]; then
     exit 1
 fi
 
+# Removed resources must not survive in an incremental release bundle.
+swift package --scratch-path "$PROJECT_DIR/.build/apple" clean
 swift build -c release --arch arm64 --arch x86_64
 
 BUILD_DIR="$PROJECT_DIR/.build/apple/Products/Release"
@@ -35,6 +37,18 @@ cp SupportingFiles/Info.plist "$CONTENTS/Info.plist"
 cp SupportingFiles/AppIcon.icns "$CONTENTS/Resources/AppIcon.icns"
 cp -R "$BUILD_DIR"/*.bundle "$CONTENTS/Resources/"
 cp -R "$SPARKLE" "$CONTENTS/Frameworks/"
+for locale in "$CONTENTS"/Resources/ClipSlop_ClipSlop.bundle/Contents/Resources/*.lproj; do
+    if [ ! -d "$PROJECT_DIR/Sources/Resources/$(basename "$locale")" ]; then
+        echo "Unexpected localization in release bundle: $locale" >&2
+        exit 1
+    fi
+done
+for locale in "$PROJECT_DIR"/Sources/Resources/*.lproj; do
+    if [ ! -d "$CONTENTS/Resources/ClipSlop_ClipSlop.bundle/Contents/Resources/$(basename "$locale")" ]; then
+        echo "Missing localization in release bundle: $locale" >&2
+        exit 1
+    fi
+done
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$CONTENTS/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" "$CONTENTS/Info.plist"
 /usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string 15.0" "$CONTENTS/Info.plist"
