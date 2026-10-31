@@ -32,13 +32,14 @@ struct ChatInputTextView: NSViewRepresentable {
         textContainer.lineFragmentPadding = 0
         layoutManager.addTextContainer(textContainer)
 
-        let textView = NSTextView(frame: .zero, textContainer: textContainer)
+        let textView = FocusReportingTextView(frame: .zero, textContainer: textContainer)
         textView.isRichText = false
         textView.allowsUndo = true
         textView.font = NSFont.preferredFont(forTextStyle: .body)
         textView.textContainerInset = NSSize(width: 0, height: verticalInset)
         textView.drawsBackground = false
         textView.delegate = context.coordinator
+        textView.onFocusChange = onFocusChange
         textView.string = text
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
@@ -72,7 +73,7 @@ struct ChatInputTextView: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         context.coordinator.onContentHeightChange = onContentHeightChange
-        context.coordinator.onFocusChange = onFocusChange
+        (scrollView.documentView as? FocusReportingTextView)?.onFocusChange = onFocusChange
         guard let textView = scrollView.documentView as? NSTextView else { return }
         // Programmatic sets don't fire textDidChange, so no feedback loop.
         if textView.string != text {
@@ -82,7 +83,7 @@ struct ChatInputTextView: NSViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text, verticalInset: verticalInset, onContentHeightChange: onContentHeightChange, onFocusChange: onFocusChange)
+        Coordinator(text: $text, verticalInset: verticalInset, onContentHeightChange: onContentHeightChange)
     }
 
     @MainActor
@@ -90,17 +91,13 @@ struct ChatInputTextView: NSViewRepresentable {
         private let text: Binding<String>
         private let verticalInset: CGFloat
         var onContentHeightChange: ((CGFloat) -> Void)?
-        var onFocusChange: ((Bool) -> Void)?
 
-        init(text: Binding<String>, verticalInset: CGFloat, onContentHeightChange: ((CGFloat) -> Void)?, onFocusChange: ((Bool) -> Void)?) {
+        init(text: Binding<String>, verticalInset: CGFloat, onContentHeightChange: ((CGFloat) -> Void)?) {
             self.text = text
             self.verticalInset = verticalInset
             self.onContentHeightChange = onContentHeightChange
-            self.onFocusChange = onFocusChange
         }
 
-        func textDidBeginEditing(_ notification: Notification) { onFocusChange?(true) }
-        func textDidEndEditing(_ notification: Notification) { onFocusChange?(false) }
 
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
@@ -119,5 +116,21 @@ struct ChatInputTextView: NSViewRepresentable {
             let used = layoutManager.usedRect(for: container).height
             onContentHeightChange(used + verticalInset * 2)
         }
+    }
+}
+
+final class FocusReportingTextView: NSTextView {
+    var onFocusChange: ((Bool) -> Void)?
+
+    override func becomeFirstResponder() -> Bool {
+        let accepted = super.becomeFirstResponder()
+        if accepted { onFocusChange?(true) }
+        return accepted
+    }
+
+    override func resignFirstResponder() -> Bool {
+        let accepted = super.resignFirstResponder()
+        if accepted { onFocusChange?(false) }
+        return accepted
     }
 }

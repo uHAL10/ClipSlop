@@ -68,12 +68,7 @@ struct PopupContentView: View {
                             Divider()
                         }
 
-                        MarkdownTextView(
-                            text: Bindable(appState).editingText,
-                            editorContext: plainTextEditorContext,
-                            findBarState: appState.findBarState,
-                            isEditable: !appState.isProcessing
-                        )
+                        textEditor
                         .frame(maxHeight: .infinity)
                         .pointerStyle(.horizontalText)
 
@@ -124,6 +119,51 @@ struct PopupContentView: View {
                 actionsBar
             }
         }
+    }
+
+    @ViewBuilder
+    private var textEditor: some View {
+        Group {
+            switch appState.activeEditorMode {
+            case .plainText:
+                MarkdownTextView(text: Bindable(appState).editingText,
+                                 editorContext: plainTextEditorContext,
+                                 findBarState: appState.findBarState,
+                                 isEditable: !appState.isProcessing)
+            case .html:
+                HTMLEditorView(text: Bindable(appState).editingText,
+                               isEditable: !appState.isProcessing,
+                               findBarState: appState.findBarState)
+            case .markdown:
+                if appState.isProcessing {
+                    switch appState.settings.markdownViewer {
+                    case .rendered:
+                        if appState.findBarState.isVisible {
+                            HTMLEditorView(text: .constant(MarkdownConverter.html(from: appState.editingText)),
+                                           isEditable: false, findBarState: appState.findBarState)
+                        } else {
+                            MarkdownPreviewView(markdown: appState.editingText)
+                        }
+                    case .colored:
+                        MarkdownTextView(text: .constant(appState.editingText), editorContext: plainTextEditorContext,
+                                         findBarState: appState.findBarState, highlighting: .markdown, isEditable: false)
+                    case .styled:
+                        MarkdownEngineView(text: .constant(appState.editingText), isEditable: false,
+                                           findBarState: appState.findBarState)
+                    }
+                } else {
+                    switch appState.settings.markdownEditor {
+                    case .plain, .colored:
+                        MarkdownEditorView(text: Bindable(appState).editingText,
+                                           findBarState: appState.findBarState,
+                                           highlightsMarkdown: appState.settings.markdownEditor == .colored)
+                    case .styled:
+                        MarkdownEngineView(text: Bindable(appState).editingText, findBarState: appState.findBarState)
+                    }
+                }
+            }
+        }
+        .onChange(of: appState.activeEditorMode) { appState.findBarState.clearAndReSearch() }
     }
 
     private var promptSidebar: some View {
@@ -711,7 +751,7 @@ struct KeyEventHandler: NSViewRepresentable {
                 return true
             }
 
-            if self.window?.firstResponder is MarkdownSourceTextView {
+            if let textView = self.window?.firstResponder as? NSTextView, textView.isEditable {
                 return false
             }
 
