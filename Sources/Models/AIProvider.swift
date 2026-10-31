@@ -44,7 +44,7 @@ enum AIProviderType: String, Codable, Sendable, CaseIterable, Identifiable {
     func resolvedIconName(modelID: String? = nil) -> (name: String, isAsset: Bool) {
         if self == .cliTool, let modelID,
            let tool = CLIToolDefinition.find(byID: modelID) {
-            return (tool.iconName, true)
+            return (tool.iconName, tool.usesAssetIcon)
         }
         return (iconName, usesAssetIcon)
     }
@@ -172,11 +172,19 @@ enum ReasoningEffort: String, Codable, Sendable, CaseIterable, Identifiable {
 }
 
 extension AIProviderConfig {
+    var supportedReasoningEfforts: [ReasoningEffort] {
+        let efforts = providerType.supportedReasoningEfforts
+        if providerType == .cliTool && CLIToolDefinition.parseModelID(modelID).toolID == "agy" {
+            return efforts + [.max]
+        }
+        return efforts
+    }
+
     /// The effort value to put on the wire, or nil when the effort is unset or
     /// the stored value isn't valid for this provider type.
     var effectiveReasoningEffort: String? {
         guard let effort = reasoningEffort,
-              providerType.supportedReasoningEfforts.contains(effort) else { return nil }
+              supportedReasoningEfforts.contains(effort) else { return nil }
         return effort.rawValue
     }
 }

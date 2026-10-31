@@ -113,7 +113,7 @@ struct CLIToolService: AIService {
 
         return try await withThrowingTaskGroup(of: String.self) { group in
             group.addTask {
-                try await runProcess(binaryPath: binaryPath, arguments: arguments, outputFile: outputFile)
+                try await runProcess(binaryPath: binaryPath, arguments: arguments, outputFile: outputFile, toolID: definition.id)
             }
             // Throwing out of the group cancels the subprocess child and waits
             // for it, so the timeout is only worth as much as that child's
@@ -128,6 +128,35 @@ struct CLIToolService: AIService {
             group.cancelAll()
             return result
         }
+    }
+
+    func agyModels(config: AIProviderConfig) async throws -> [String] {
+        let (binaryPath, definition, _) = try resolveToolInfo(config: config)
+        guard definition.id == "agy" else { throw AIServiceError.cliToolNotFound("agy") }
+        let output = try await withThrowingTaskGroup(of: String.self) { group in
+            group.addTask { try await runProcess(binaryPath: binaryPath, arguments: ["models"], outputFile: nil, toolID: definition.id) }
+            group.addTask {
+                try await Task.sleep(for: .seconds(30))
+                throw AIServiceError.cliToolTimeout
+            }
+            let result = try await group.next()!
+            group.cancelAll()
+            return result
+        }
+        return try Self.parseAGYModels(output)
+    }
+
+    static func parseAGYModels(_ output: String) throws -> [String] {
+        let lines = output.split(whereSeparator: \.isNewline)
+        let ids = lines.compactMap { line -> String? in
+            let fields = line.split(separator: "\t", maxSplits: 1)
+            guard fields.count == 2, !fields[0].isEmpty, !fields[1].isEmpty else { return nil }
+            return "agy/" + fields[0]
+        }
+        guard !ids.isEmpty, ids.count == lines.count else {
+            throw AIServiceError.cliToolFailed(exitCode: 0, stderr: "Invalid agy model list")
+        }
+        return Array(Set(ids)).sorted()
     }
 
     /// One consumer, one subprocess — and exactly ONE `onTermination` handler,
@@ -175,11 +204,7 @@ struct CLIToolService: AIService {
                         return
                     }
 
-                    let process = Process()
-                    process.executableURL = URL(fileURLWithPath: binaryPath)
-                    process.arguments = arguments
-                    process.environment = buildEnvironment()
-                    process.currentDirectoryURL = URL(fileURLWithPath: NSHomeDirectory())
+                    let (process, workspace) = try makeProcess(binaryPath: binaryPath, arguments: arguments, toolID: definition.id)
 
                     let stdoutPipe = Pipe()
                     let stderrPipe = Pipe()
@@ -200,6 +225,7 @@ struct CLIToolService: AIService {
                     }
 
                     process.terminationHandler = { proc in
+                        defer { workspace?.remove() }
                         stdoutHandle.readabilityHandler = nil
                         watchdog.stop()
 
@@ -236,7 +262,12 @@ struct CLIToolService: AIService {
                         }
                     }
 
-                    try process.run()
+                    do {
+                        try process.run()
+                    } catch {
+                        workspace?.remove()
+                        throw error
+                    }
 
                     // Publish the live child so the termination handler below
                     // has something to signal — and pick up a cancellation that
@@ -306,6 +337,20 @@ struct CLIToolService: AIService {
 
     // MARK: - Private
 
+    private func makeProcess(binaryPath: String, arguments: [String], toolID: String) throws -> (Process, AGYWorkspace?) {
+        let workspace = try toolID == "agy" ? AGYWorkspace() : nil
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: binaryPath)
+        process.arguments = (workspace?.arguments ?? []) + arguments
+        process.environment = buildEnvironment()
+        process.currentDirectoryURL = workspace?.directory ?? URL(fileURLWithPath: NSHomeDirectory())
+        if let workspace {
+            // AGY compares trusted paths with PWD; both must use the same symlink-resolved path.
+            process.environment?["PWD"] = workspace.directory.path
+        }
+        return (process, workspace)
+    }
+
     private func resolveToolInfo(
         config: AIProviderConfig
     ) throws -> (path: String, definition: CLIToolDefinition, model: String?) {
@@ -338,7 +383,7 @@ struct CLIToolService: AIService {
     /// caller, and cancelling a Magic run left the subprocess running behind
     /// it. Cancellation now terminates the process and resumes the continuation
     /// itself, so the group can return the moment the timeout fires.
-    private func runProcess(binaryPath: String, arguments: [String], outputFile: URL?) async throws -> String {
+    private func runProcess(binaryPath: String, arguments: [String], outputFile: URL?, toolID: String) async throws -> String {
         let run = ProcessRun()
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
@@ -349,11 +394,14 @@ struct CLIToolService: AIService {
                     return
                 }
 
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: binaryPath)
-                process.arguments = arguments
-                process.environment = buildEnvironment()
-                process.currentDirectoryURL = URL(fileURLWithPath: NSHomeDirectory())
+                let process: Process
+                let workspace: AGYWorkspace?
+                do {
+                    (process, workspace) = try makeProcess(binaryPath: binaryPath, arguments: arguments, toolID: toolID)
+                } catch {
+                    run.fail(error)
+                    return
+                }
 
                 let stdoutPipe = Pipe()
                 let stderrPipe = Pipe()
@@ -361,6 +409,7 @@ struct CLIToolService: AIService {
                 process.standardError = stderrPipe
 
                 process.terminationHandler = { proc in
+                    defer { workspace?.remove() }
                     // Claim the resume BEFORE touching a pipe. On the
                     // cancellation path the continuation is already gone, and
                     // `readDataToEndOfFile` there is a liability rather than a
@@ -406,6 +455,7 @@ struct CLIToolService: AIService {
                 do {
                     try process.run()
                 } catch {
+                    workspace?.remove()
                     run.fail(AIServiceError.cliToolNotFound(binaryPath))
                     return
                 }

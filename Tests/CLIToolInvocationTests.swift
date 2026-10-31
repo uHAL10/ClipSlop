@@ -9,6 +9,22 @@ struct CLIToolInvocationTests {
 
     private var claude: CLIToolDefinition { CLIToolDefinition.find(byID: "claude")! }
 
+    @Test func agyModelListRequiresTabSeparatedRecords() throws {
+        #expect(try CLIToolService.parseAGYModels("model-b\tModel B\nmodel-a\tModel A\n") == ["agy/model-a", "agy/model-b"])
+        #expect(throws: (any Error).self) { try CLIToolService.parseAGYModels("model-a\tModel A\ninvalid") }
+        #expect(throws: (any Error).self) { try CLIToolService.parseAGYModels("") }
+    }
+
+    @Test func agyArgumentsDisableSlashCommandsAndPassModelAndEffort() {
+        let agy = CLIToolDefinition.find(byID: "agy")!
+        #expect(agy.buildArguments("hi", "sys", nil, "model-id", "high") == [
+            "--output-format", "text", "--disable-slash-commands", "--sandbox",
+            "--model", "model-id", "--effort", "high", "--print=sys\n\nhi"
+        ])
+        #expect(!agy.buildArguments("hi", "", nil, nil, "none").contains("--effort"))
+        #expect(agy.buildArguments("--help", "", nil, nil, nil).last == "--print=--help")
+    }
+
     @Test func modelIDSplitsIntoToolAndModel() {
         #expect(CLIToolDefinition.parseModelID("claude") == ("claude", nil))
         #expect(CLIToolDefinition.parseModelID("claude/sonnet") == ("claude", "sonnet"))
@@ -52,6 +68,19 @@ struct CLIToolInvocationTests {
         // `.max` is not a claude `--effort` level — the shared validation
         // refuses it, so an invalid value can never fail a whole press.
         config.reasoningEffort = .max
+        #expect(config.effectiveReasoningEffort == nil)
+    }
+
+    @Test func agyAcceptsMaxEffort() {
+        var config = AIProviderConfig(name: "AGY", providerType: .cliTool, modelID: "agy/model")
+        config.reasoningEffort = .max
+        #expect(config.supportedReasoningEfforts.contains(.max))
+        #expect(config.effectiveReasoningEffort == "max")
+        let args = CLIToolDefinition.find(byID: "agy")!.buildArguments("hi", "", nil, "model", config.effectiveReasoningEffort)
+        #expect(args.contains("--effort"))
+        #expect(args.contains("max"))
+        config.modelID = "claude/sonnet"
+        #expect(!config.supportedReasoningEfforts.contains(.max))
         #expect(config.effectiveReasoningEffort == nil)
     }
 }
