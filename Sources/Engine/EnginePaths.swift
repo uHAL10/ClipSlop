@@ -8,9 +8,15 @@ extension Constants {
     /// `appSupportDirectory` is scoped: a dev launch must never overwrite the
     /// real library.
     enum Engine {
-        static let rootDirectory: URL = FileManager.default
-            .homeDirectoryForCurrentUser
-            .appendingPathComponent(Constants.isDevBuild ? ".clipslop-dev" : ".clipslop")
+        static let rootDirectory: URL = {
+            #if DEBUG
+            if Constants.isPreview {
+                return Constants.previewDirectory.appendingPathComponent("engine")
+            }
+            #endif
+            return FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent(Constants.isDevBuild ? ".clipslop-dev" : ".clipslop")
+        }()
 
         static let coreDirectory = rootDirectory.appendingPathComponent("core")
         static let workflowsDirectory = rootDirectory.appendingPathComponent("workflows")

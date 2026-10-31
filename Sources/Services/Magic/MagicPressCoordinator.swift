@@ -152,10 +152,10 @@ final class MagicPressCoordinator {
         // One-shot migration of the legacy UserDefaults toggle. Debug logging
         // lives in config.yaml (`debug_log_enabled`) so file-editing agents can
         // reach it, and config is the authority once this has run.
-        if UserDefaults.standard.bool(forKey: "magicDebugLogging") {
+        if Constants.userDefaults.bool(forKey: "magicDebugLogging") {
             configStore.setInteger(1, forKey: "debug_log_enabled")
         }
-        UserDefaults.standard.removeObject(forKey: "magicDebugLogging")
+        Constants.userDefaults.removeObject(forKey: "magicDebugLogging")
         Task { [traceLogger, debugLogger] in
             await traceLogger.pruneOldLogs()
             await debugLogger.pruneOldLogs()

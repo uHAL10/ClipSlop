@@ -7,7 +7,7 @@ final class Loc {
 
     var language: AppLanguage {
         didSet {
-            UserDefaults.standard.set(language.rawValue, forKey: "appLanguage")
+            Constants.userDefaults.set(language.rawValue, forKey: "appLanguage")
             reloadBundle()
         }
     }
@@ -15,7 +15,7 @@ final class Loc {
     @ObservationIgnored private var currentBundle: Bundle
 
     private init() {
-        let saved = UserDefaults.standard.string(forKey: "appLanguage")
+        let saved = Constants.userDefaults.string(forKey: "appLanguage")
         let lang = saved.flatMap(AppLanguage.init(rawValue:)) ?? AppLanguage.systemDefault
         self.language = lang
 

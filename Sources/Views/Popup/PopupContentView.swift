@@ -1,8 +1,14 @@
 import SwiftUI
 
+#if DEBUG
+#Preview("Editor") {
+    PopupEditorPreview()
+}
+#endif
+
 struct PopupContentView: View {
     let appState: AppState
-    @State private var promptGridHeight: Double = UserDefaults.standard.object(forKey: "promptGridHeight") as? Double ?? 80
+    @State private var promptGridHeight: Double = Constants.userDefaults.object(forKey: "promptGridHeight") as? Double ?? 80
     @State private var dragStartHeight: Double = 0
     private let loc = Loc.shared
 
@@ -367,6 +373,7 @@ struct PopupContentView: View {
     private var actionsBar: some View {
         HStack(spacing: 10) {
             copyButton
+                .allowsHitTesting(!Constants.isPreview)
 
             actionButton(loc.t("popup.edit"), icon: "pencil", shortcut: "⌘E") {
                 appState.startEditing()
@@ -375,10 +382,12 @@ struct PopupContentView: View {
             actionButton(loc.t("popup.open"), icon: "square.and.arrow.up", shortcut: "⌘O") {
                 appState.openInTextEdit()
             }
+            .allowsHitTesting(!Constants.isPreview)
 
             actionButton(loc.t("popup.save"), icon: "square.and.arrow.down", shortcut: "⌘S") {
                 appState.saveToFile()
             }
+            .allowsHitTesting(!Constants.isPreview)
 
             actionButton(loc.t("popup.hint.find"), icon: "magnifyingglass", shortcut: "⌘F") {
                 appState.findBarState.show()
@@ -716,6 +725,10 @@ struct KeyEventHandler: NSViewRepresentable {
             let flags = event.modifierFlags
             let hasCmd = flags.contains(.command)
             let hasControl = flags.contains(.control)
+
+            if Constants.isPreview && hasCmd && [KeyCode.c, KeyCode.v, KeyCode.o, KeyCode.s, KeyCode.comma].contains(code) {
+                return false
+            }
 
             // Let global shortcuts (⌃⌘ combos) pass through to the
             // KeyboardShortcuts handler — don't intercept them here.
@@ -1071,7 +1084,7 @@ private struct ResizeHandleRepresentable: NSViewRepresentable {
         }
         view.onDragEnd = {
             if let storageKey {
-                UserDefaults.standard.set(height, forKey: storageKey)
+                Constants.userDefaults.set(height, forKey: storageKey)
             }
             dragStartHeight = 0
         }

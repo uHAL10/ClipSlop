@@ -458,7 +458,7 @@ final class AppState {
 
     func completeOnboarding() {
         settings.hasCompletedOnboarding = true
-        UserDefaults.standard.removeObject(forKey: "onboardingStep")
+        Constants.userDefaults.removeObject(forKey: "onboardingStep")
         onboardingWindow?.close()
         onboardingWindow = nil
     }
@@ -737,6 +737,22 @@ final class AppState {
         // prompt has to wait so the two runs can't race to mutate the
         // session.
         guard !isProcessing, var session = currentSession else { return }
+
+        #if DEBUG
+        // Preview interactions must not send sample text to an AI provider.
+        if Constants.isPreview {
+            if let index = selectedHistoryStepIndex, index >= 0 {
+                session = session.steppingTo(index: index)
+            }
+            currentSession = session.addingStep(
+                promptName: name,
+                outputText: "Preview: \(name)\n\n\(currentDisplayText)",
+                displayMode: activeEditorMode
+            )
+            selectedHistoryStepIndex = nil
+            return
+        }
+        #endif
 
         // Use prompt-specific provider if set, otherwise fall back to default
         guard let provider = providerStore.provider(preferring: providerID) else {

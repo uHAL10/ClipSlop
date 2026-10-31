@@ -13,6 +13,23 @@ swift build
 
 Or open `Package.swift` in Xcode and **Run**.
 
+## Live editor preview
+
+Open the package in a fresh Xcode instance:
+
+```bash
+./Scripts/open-preview.sh
+```
+
+Select the **ClipSlopPreview** scheme, then open
+`Sources/Views/Popup/PopupContentView.swift` or `PromptNavigatorView.swift`.
+Choose **Editor → Canvas** and click **Resume**. The app and preview share
+the same source files, so edits appear in the canvas as Xcode refreshes it.
+
+The preview uses temporary files and separate preferences. Prompt execution
+returns sample text; it does not call an AI provider. Copy, open, and save
+actions are disabled in the preview.
+
 ## Requirements
 
 - macOS 14.0+

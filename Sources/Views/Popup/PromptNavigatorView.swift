@@ -1,5 +1,11 @@
 import SwiftUI
 
+#if DEBUG
+#Preview("Editor") {
+    PopupEditorPreview()
+}
+#endif
+
 struct PromptNavigatorView: View {
     let appState: AppState
     private let loc = Loc.shared

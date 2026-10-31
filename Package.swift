@@ -8,6 +8,10 @@ let package = Package(
     platforms: [
         .macOS(.v15)
     ],
+    products: [
+        .executable(name: "ClipSlop", targets: ["ClipSlopLauncher"]),
+        .library(name: "ClipSlopPreview", targets: ["ClipSlop"]),
+    ],
     dependencies: [
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.0.0"),
         .package(url: "https://github.com/sindresorhus/LaunchAtLogin-Modern", from: "1.0.0"),
@@ -18,7 +22,7 @@ let package = Package(
         .package(url: "https://github.com/nodes-app/swift-markdown-engine", from: "0.10.0"),
     ],
     targets: [
-        .executableTarget(
+        .target(
             name: "ClipSlop",
             dependencies: [
                 "KeyboardShortcuts",
@@ -55,7 +59,12 @@ let package = Package(
                     "-Xfrontend", "SupportingFiles/AppIntentsConstValueProtocols.json",
                     "-emit-const-values",
                 ])
-            ],
+            ]
+        ),
+        .executableTarget(
+            name: "ClipSlopLauncher",
+            dependencies: ["ClipSlop"],
+            path: "Launcher",
             linkerSettings: [
                 .unsafeFlags([
                     "-Xlinker", "-sectcreate",

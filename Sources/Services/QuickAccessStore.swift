@@ -34,7 +34,7 @@ final class QuickAccessStore {
 
     init() {
         let settings = AppSettings.shared
-        let defaults = UserDefaults.standard
+        let defaults = Constants.userDefaults
 
         // Users on the build where the auto-update toggle was introduced may
         // already have a disk file (from the UserDefaults→disk migration in
@@ -169,7 +169,7 @@ final class QuickAccessStore {
     }
 
     private static func userDefaultsHasTiles() -> Bool {
-        guard let data = UserDefaults.standard.data(forKey: "quickAccessTiles"),
+        guard let data = Constants.userDefaults.data(forKey: "quickAccessTiles"),
               let tiles = try? JSONDecoder().decode([QuickAccessTile].self, from: data)
         else { return false }
         return !tiles.isEmpty
@@ -179,7 +179,7 @@ final class QuickAccessStore {
     /// them to the on-disk document, then removes them so the migration only
     /// runs once.
     private static func migrateFromUserDefaults() -> QuickAccessDocument? {
-        let defaults = UserDefaults.standard
+        let defaults = Constants.userDefaults
         let storedColumns = defaults.object(forKey: "quickAccessGridColumns") as? Int
         let storedTilesData = defaults.data(forKey: "quickAccessTiles")
         let hadAnything = storedColumns != nil || storedTilesData != nil
