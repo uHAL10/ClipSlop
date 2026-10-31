@@ -349,6 +349,7 @@ private struct AssistantKeyHandler: NSViewRepresentable {
                 monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
                     guard let self, let appState = self.appState else { return event }
                     guard event.window === self.window else { return event }
+                    guard !isComposingText(event.window?.firstResponder) else { return event }
                     return self.handle(event, appState: appState) ? nil : event
                 }
             }

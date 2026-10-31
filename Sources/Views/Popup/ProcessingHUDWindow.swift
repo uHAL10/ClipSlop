@@ -155,7 +155,7 @@ private struct ProcessingHUDView: View {
                 Text(promptName)
                     .font(.system(.body, weight: .medium))
                     .lineLimit(1)
-                Text("Processing...")
+                Text(Loc.shared.t("popup.processing"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

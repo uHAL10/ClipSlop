@@ -341,7 +341,7 @@ struct PopupContentView: View {
                 Spacer()
 
                 Picker(loc.t("popup.display"), selection: Bindable(appState).activeEditorMode) {
-                    Text("Plain text").tag(EditorMode.plainText)
+                    Text(loc.t("settings.general.behavior.editor_mode.plain")).tag(EditorMode.plainText)
                     Text("HTML").tag(EditorMode.html)
                     Text("Markdown").tag(EditorMode.markdown)
                 }
@@ -388,7 +388,7 @@ struct PopupContentView: View {
 
             if appState.isViewingOriginal {
                 Picker(loc.t("popup.source"), selection: Bindable(appState).originalViewMode) {
-                    Text("Plain text").tag(RichTextMode.plainText)
+                    Text(loc.t("settings.general.behavior.rich_text_mode.plain")).tag(RichTextMode.plainText)
                     Text("HTML").tag(RichTextMode.html)
                     Text("Markdown").tag(RichTextMode.markdown)
                     Text("Markdown (AI)").tag(RichTextMode.markdownAI)
@@ -409,7 +409,7 @@ struct PopupContentView: View {
             }
 
             Picker(loc.t("popup.display"), selection: Bindable(appState).activeEditorMode) {
-                Text("Plain text").tag(EditorMode.plainText)
+                Text(loc.t("settings.general.behavior.editor_mode.plain")).tag(EditorMode.plainText)
                 Text("HTML").tag(EditorMode.html)
                 Text("Markdown").tag(EditorMode.markdown)
             }
@@ -672,6 +672,7 @@ struct KeyEventHandler: NSViewRepresentable {
                 monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
                     guard let self, let appState = self.appState else { return event }
                     guard event.window === self.window else { return event }
+                    guard !isComposingText(event.window?.firstResponder) else { return event }
                     return self.handleKey(event, appState: appState) ? nil : event
                 }
             }

@@ -1,0 +1,624 @@
+/* Onboarding - Language */
+"onboarding.language.title" = "言語を選択";
+"onboarding.language.subtitle" = "ClipSlop の表示言語を選択してください。";
+
+/* Onboarding - Welcome */
+"onboarding.welcome.title" = "ClipSlop へようこそ";
+"onboarding.welcome.subtitle" = "AI でテキストを翻訳、整形、分析できます。\nテキストを選択し、ショートカットを押してプロンプトを選ぶだけです。";
+"onboarding.welcome.feature.grab" = "どのアプリからでも選択したテキストを取得";
+"onboarding.welcome.feature.ocr" = "OCR で画面上のテキストを読み取り";
+"onboarding.welcome.feature.providers" = "Claude、GPT、Ollama などの AI プロバイダに対応";
+"onboarding.welcome.feature.folders" = "プロンプトをフォルダで階層的に整理";
+"onboarding.welcome.feature.history" = "すべての変換履歴と取り消し機能";
+
+/* Onboarding - Permissions */
+"onboarding.permissions.title" = "アクセス権限";
+"onboarding.permissions.subtitle" = "ClipSlop の使用にはいくつかの権限が必要です。";
+"onboarding.permissions.accessibility" = "アクセシビリティ";
+"onboarding.permissions.accessibility.desc" = "ほかのアプリで選択したテキストの取得に必要です";
+"onboarding.permissions.screen_recording" = "画面収録";
+"onboarding.permissions.screen_recording.desc" = "OCR で画面上のテキストを読み取るために必要です";
+"onboarding.permissions.hint" = "権限は後から「システム設定」→「プライバシーとセキュリティ」で変更できます";
+"onboarding.permissions.grant" = "許可";
+
+/* Onboarding - Shortcuts */
+"onboarding.shortcuts.title" = "キーボードショートカット";
+"onboarding.shortcuts.subtitle" = "アプリ全体で使えるショートカットです。設定でいつでも変更できます。";
+"onboarding.shortcuts.trigger" = "ClipSlop を起動";
+"onboarding.shortcuts.clipboard" = "クリップボードから";
+"onboarding.shortcuts.blank" = "空のエディタ";
+"onboarding.shortcuts.ocr" = "OCR で読み取って編集";
+"onboarding.shortcuts.ocr_clipboard" = "OCR でクリップボードにコピー";
+"onboarding.shortcuts.ocr_clipslop" = "OCR で読み取って ClipSlop で開く";
+
+/* Onboarding - Provider */
+"onboarding.provider.title" = "AI プロバイダ";
+"onboarding.provider.subtitle" = "開始するには、AI プロバイダを少なくとも 1 つ設定してください。";
+"onboarding.provider.configured" = "デフォルトのプロバイダを設定済み";
+"onboarding.provider.not_configured" = "デフォルトのプロバイダが未設定";
+"onboarding.provider.not_configured_hint" = "テキストの処理を始めるには、プロバイダを少なくとも 1 つ追加してください。";
+"onboarding.provider.configure" = "プロバイダを設定";
+"onboarding.provider.api_key" = "API キー";
+"onboarding.provider.model" = "モデル";
+"onboarding.provider.base_url" = "ベース URL";
+"onboarding.provider.test_connection" = "接続をテスト";
+"onboarding.provider.testing" = "テスト中…";
+"onboarding.provider.save" = "プロバイダを保存";
+"onboarding.provider.connected" = "接続しました！";
+"onboarding.provider.default_label" = "処理に使うデフォルトのプロバイダ：";
+"onboarding.provider.hint.anthropic" = "console.anthropic.com でキーを取得してください";
+"onboarding.provider.hint.openai" = "platform.openai.com でキーを取得してください";
+"onboarding.provider.hint.ollama" = "Ollama がローカルで実行中であることを確認してください（ollama serve）";
+"onboarding.provider.hint.cli_tool" = "CLI ツールは独自の認証を使用します。ターミナルで一度実行して設定してください。";
+"onboarding.provider.cli.detected" = "検出された CLI ツール：";
+"onboarding.provider.cli.none_found" = "対応する CLI ツールが見つかりません。Claude Code または Codex CLI をインストールしてください。";
+"onboarding.provider.cli.select_tool" = "ツールを選択";
+
+/* Onboarding - iCloud */
+"onboarding.icloud.title" = "iCloud 同期";
+"onboarding.icloud.subtitle" = "すべての Mac でプロンプトを同期します。\n1 台で行った変更がほかの Mac にも自動的に反映されます。";
+"onboarding.icloud.toggle" = "iCloud でプロンプトを同期";
+"onboarding.icloud.change_later" = "後から設定で変更できます。";
+"onboarding.icloud.unavailable" = "iCloud を利用できません。「システム設定」で iCloud にサインインしてください。";
+"onboarding.icloud.synced" = "同期済み";
+"onboarding.icloud.syncing" = "同期中…";
+"onboarding.icloud.conflict.title" = "iCloud にプロンプトが見つかりました";
+"onboarding.icloud.conflict.message" = "別の Mac がすでにプロンプトを iCloud に同期しています。そのプロンプトを使いますか、それとも現在のプロンプトをアップロードしますか？";
+"onboarding.icloud.conflict.use_cloud" = "iCloud を使用";
+"onboarding.icloud.conflict.upload_local" = "ローカルからアップロード";
+
+/* Onboarding - Demo */
+"onboarding.demo.title" = "試してみましょう！";
+"onboarding.demo.subtitle" = "下のテキストを選択して ClipSlop を起動し、処理してみましょう。";
+"onboarding.demo.sample_text" = "今日は天気がいいので、公園まで散歩に出かけました。木々の間を通る風が心地よく、きれいな花も咲いていました。この文章を選択して ClipSlop を起動してみましょう！";
+"onboarding.demo.select_all" = "すべて選択";
+"onboarding.demo.selected_hint" = "テキストを選択しました。ショートカットを押してください！";
+"onboarding.demo.trigger_heading" = "ClipSlop を起動：";
+"onboarding.demo.selected_text" = "選択したテキスト";
+"onboarding.demo.from_clipboard" = "クリップボードから";
+"onboarding.demo.or" = "または";
+"onboarding.demo.trigger" = "起動";
+"onboarding.demo.manual" = "手動";
+
+/* Onboarding - Navigation */
+"onboarding.back" = "戻る";
+"onboarding.continue" = "続ける";
+"onboarding.get_started" = "始める";
+
+/* Settings - Tabs */
+"settings.tab.general" = "一般";
+"settings.tab.providers" = "プロバイダ";
+"settings.tab.prompts" = "プロンプト";
+"settings.tab.about" = "このアプリについて";
+
+/* Settings - General - Language */
+"settings.general.language" = "言語";
+
+/* Settings - General - iCloud */
+"settings.general.icloud" = "iCloud";
+"settings.general.icloud.toggle" = "iCloud でプロンプトを同期";
+"settings.general.icloud.sign_in" = "同期を有効にするには、「システム設定」で iCloud にサインインしてください。";
+"settings.general.icloud.unavailable" = "iCloud を利用できません";
+"settings.general.icloud.synced" = "同期済み";
+"settings.general.icloud.syncing" = "同期中…";
+"settings.general.icloud.sync_error" = "同期エラー";
+"settings.general.icloud.conflict.title" = "iCloud にプロンプトが見つかりました";
+"settings.general.icloud.conflict.message" = "iCloud のプロンプトを使いますか、それとも現在のプロンプトをアップロードしますか？";
+"settings.general.icloud.conflict.use_cloud" = "iCloud を使用";
+"settings.general.icloud.conflict.upload_local" = "ローカルからアップロード";
+
+/* Settings - General - Shortcuts */
+"settings.general.shortcuts" = "キーボードショートカット";
+"settings.general.shortcuts.trigger" = "選択したテキストを編集：";
+"settings.general.shortcuts.clipboard" = "クリップボードを編集：";
+"settings.general.shortcuts.blank" = "空のエディタを開く：";
+"settings.general.shortcuts.ocr" = "画面上のテキストを編集：";
+"settings.general.shortcuts.ocr_clipboard" = "画面上のテキストをコピー：";
+"settings.general.shortcuts.ocr_clipslop" = "画面上のテキストを編集：";
+
+/* Settings - General - Behavior */
+"settings.general.behavior" = "動作";
+"settings.general.behavior.streaming" = "応答のストリーミングを有効にする";
+"settings.general.behavior.launch_login" = "ログイン時に起動";
+"settings.general.behavior.keycodes" = "キーコードを使用（配列に依存しないショートカット）";
+"settings.general.behavior.keycodes_help" = "物理的なキーの位置で判定します。どのキーボード配列でもニーモニックを使用できます";
+"settings.general.behavior.spotlight_indexing" = "Spotlight でプロンプトを検索";
+"settings.general.behavior.spotlight_indexing_help" = "プロンプト名とフォルダを Spotlight に追加し、⌘Space で検索できるようにします。プロンプトの内容は索引に追加されません。";
+"settings.general.behavior.markdown_renderer" = "表示に使用するエンジン";
+"settings.general.behavior.markdown_renderer_help" = "レンダリング表示のエンジンです。Textual はネイティブに描画し、HTML Editor は Web ビューでより豊かな書式に対応します";
+"settings.general.behavior.markdown_viewer" = "Markdown ビューア";
+"settings.general.behavior.markdown_viewer_help" = "閲覧時の Markdown の表示方法";
+"settings.general.behavior.markdown_viewer.colored" = "色付きソース";
+"settings.general.behavior.markdown_viewer.styled" = "スタイル付き";
+"settings.general.behavior.markdown_viewer.rendered" = "レンダリング";
+"settings.general.behavior.markdown_editor" = "Markdown エディタ";
+"settings.general.behavior.markdown_editor_help" = "編集時の Markdown ソースの表示方法";
+"settings.general.behavior.markdown_editor.plain" = "プレーンソース";
+"settings.general.behavior.markdown_editor.colored" = "色付きソース";
+"settings.general.behavior.markdown_editor.styled" = "スタイル付き";
+"settings.general.behavior.show_images_markdown" = "Markdown の画像を表示";
+"settings.general.behavior.show_images_markdown_help" = "Markdown のプレビュー時に画像を読み込んで表示します";
+"settings.general.behavior.preserve_image_widths" = "画像の幅を維持";
+"settings.general.behavior.preserve_image_widths_help" = "Markdown をレンダリングする際に HTML の画像タグの width と max-width を維持します";
+"settings.general.behavior.close_on_escape" = "Escape でウインドウを閉じる";
+"settings.general.behavior.close_on_escape_help" = "有効な場合は Escape でウインドウを閉じ、無効な場合は前の画面に戻ります";
+"settings.general.behavior.close_on_copy" = "コピー時にウインドウを閉じる";
+"settings.general.behavior.close_on_copy_help" = "テキストをコピーしてウインドウを閉じます。⌘⌃C（コピーして閉じる）はこの設定にかかわらず使用できます";
+"settings.general.behavior.editor_mode" = "表示形式";
+"settings.general.behavior.editor_mode_help" = "ポップアップでのテキストの表示・編集方法";
+"settings.general.behavior.editor_mode.plain" = "プレーンテキスト";
+"settings.general.behavior.editor_mode.html" = "HTML";
+"settings.general.behavior.editor_mode.markdown" = "Markdown";
+"settings.general.behavior.rich_text_mode" = "リッチテキストの処理";
+"settings.general.behavior.rich_text_mode_help" = "クリップボードの書式付きテキスト（Chrome や Word からコピーしたものなど）の処理方法";
+"settings.general.behavior.rich_text_mode.plain" = "プレーンテキスト";
+"settings.general.behavior.rich_text_mode.html" = "HTML";
+"settings.general.behavior.rich_text_mode.markdown" = "Markdown";
+"settings.general.behavior.rich_text_mode.markdown_ai" = "MD（AI）";
+"settings.general.behavior.markdown_ai_only_rich" = "リッチテキストを検出したときのみ";
+"settings.general.behavior.markdown_ai_only_rich_help" = "クリップボードにプレーンテキストしかない場合（HTML や RTF がない場合）は AI による変換を省略します";
+"settings.general.behavior.conversion_prompt" = "変換用プロンプト";
+"settings.general.behavior.reset_default" = "デフォルトに戻す";
+"settings.general.adhoc" = "クイック指示（⌘K）";
+"settings.general.adhoc.system_prompt" = "システムプロンプト";
+"settings.general.adhoc.help" = "ポップアップで ⌘K を押すと、その場限りの指示を入力して現在のテキストに実行できます。プロンプトを保存する必要はありません。指示は下の {instruction} に挿入されます。{instruction} がない場合は末尾に追加されます。";
+
+/* Settings - General - Appearance */
+"settings.general.appearance" = "外観";
+"settings.general.appearance.theme" = "テーマ";
+"settings.general.appearance.theme.system" = "システム";
+"settings.general.appearance.theme.light" = "ライト";
+"settings.general.appearance.theme.dark" = "ダーク";
+"settings.general.appearance.opacity" = "ポップアップの不透明度";
+"settings.general.appearance.width" = "ポップアップの幅";
+"settings.general.appearance.height" = "ポップアップの高さ";
+"settings.general.appearance.hide_menubar" = "メニューバーアイコンを隠す";
+"settings.general.appearance.hide_dock" = "Dock アイコンを隠す";
+
+/* Settings - General - Permissions */
+"settings.general.permissions" = "アクセス権限";
+"settings.general.permissions.accessibility" = "アクセシビリティ";
+"settings.general.permissions.accessibility_detail" = "ほかのアプリで選択したテキストを取得";
+"settings.general.permissions.screen_recording" = "画面収録";
+"settings.general.permissions.screen_recording_detail" = "OCR による画面の読み取り";
+"settings.general.permissions.open_settings" = "設定を開く";
+"settings.general.permissions.grant" = "許可";
+"settings.general.permissions.suppress_alert" = "起動時の権限に関する警告を表示しない";
+"settings.general.permissions.suppress_alert_help" = "起動後に権限が不足している場合も警告を表示しません";
+
+/* Permission Alert */
+"permission_alert.title" = "権限を確認してください";
+"permission_alert.subtitle" = "アップデート後に ClipSlop の権限が失われた可能性があります。アプリのコード署名が変更されると、macOS は権限をリセットします。";
+"permission_alert.instructions_title" = "「許可」ボタンが機能しない場合：";
+"permission_alert.step1" = "「システム設定」→「プライバシーとセキュリティ」を開きます";
+"permission_alert.step2" = "「アクセシビリティ」（OCR の場合は「画面収録」）を選択します";
+"permission_alert.step3" = "一覧で ClipSlop を選択し、「-」をクリックして削除します";
+"permission_alert.step4" = "「+」をクリックして ClipSlop を再度追加します";
+"permission_alert.validate" = "確認";
+"permission_alert.dont_show_again" = "今後表示しない";
+"permission_alert.close" = "閉じる";
+
+/* Settings - Providers */
+"settings.providers.select" = "プロバイダを選択";
+"settings.routing.title" = "モデルの振り分け";
+"settings.routing.role.generation.magic" = "Magic Button の生成";
+"settings.routing.role.planner.magic" = "Magic Button のプランナー";
+"settings.routing.role.chat.assistant" = "設定アシスタントのチャット";
+"settings.routing.provider_default" = "アプリのデフォルト";
+"settings.routing.min_cost" = "最小コスト";
+"settings.routing.timeout" = "タイムアウト（秒）";
+"settings.routing.off" = "オフ";
+"settings.routing.spend" = "トークン：今日 %@ · 今月 %@";
+"settings.routing.warnings" = "設定の警告";
+"settings.routing.fallbacks_hint" = "フォールバックの順序は roles.yaml で編集します（形式はファイルの冒頭を参照）。";
+"settings.routing.missing_key" = "%@ に API キーが設定されていません";
+"settings.routing.falls_back" = "設定したプロバイダを利用できないため、%@ に切り替えます";
+"settings.routing.refused_cost" = "最小コストクラス %@ を満たすプロバイダがないため、生成は実行されません";
+"settings.routing.no_provider" = "この用途に利用できるプロバイダがありません";
+"settings.providers.add" = "プロバイダを追加";
+"settings.providers.name" = "名前";
+"settings.providers.type" = "種類";
+"settings.providers.provider" = "プロバイダ";
+"settings.providers.connection" = "接続";
+"settings.providers.base_url" = "ベース URL";
+"settings.providers.model_id" = "モデル ID";
+"settings.providers.max_tokens" = "最大トークン数";
+"settings.providers.authentication" = "認証";
+"settings.providers.api_key" = "API キー";
+"settings.providers.set_default" = "デフォルトに設定";
+"settings.providers.default_label" = "デフォルトのプロバイダ";
+"settings.providers.save" = "保存";
+"settings.providers.cancel" = "キャンセル";
+"settings.providers.add_button" = "追加";
+"settings.providers.name_optional" = "名前（任意）";
+"settings.providers.desc.openAIChatGPT" = "ChatGPT アカウントでサインイン";
+"settings.providers.desc.openAI" = "API キーを使って OpenAI API を利用";
+"settings.providers.desc.anthropic" = "API キーを使って Anthropic API を利用";
+"settings.providers.desc.ollama" = "ローカルの Ollama に接続";
+"settings.providers.desc.openAICompatible" = "OpenAI 互換の API エンドポイントを使用";
+"settings.providers.desc.cliTool" = "CLI ツール（Claude Code など）を使用";
+"settings.providers.fetch_models" = "利用可能なモデルを取得";
+"settings.providers.add_first" = "プロバイダを追加";
+"settings.providers.cli.tool" = "CLI ツール";
+"settings.providers.cli.binary_path" = "実行ファイルのパス";
+"settings.providers.cli.redetect" = "再検出";
+"settings.providers.cli.available" = "利用可能";
+"settings.providers.cli.not_found" = "見つかりません。ツールがアンインストールされた可能性があります";
+"settings.providers.chatgpt.sign_in" = "ChatGPT でサインイン";
+"settings.providers.chatgpt.sign_in_title" = "サインインが必要です";
+"settings.providers.chatgpt.sign_in_message" = "ChatGPT はブラウザでのサインインが必要です。OpenAI のログインページに移動します。";
+"settings.providers.chatgpt.sign_in_continue" = "ブラウザで続ける";
+"settings.providers.chatgpt.signing_in" = "ブラウザでのサインインを待機中…";
+"settings.providers.chatgpt.sign_out" = "サインアウト";
+"settings.providers.chatgpt.copy_url" = "サインイン URL をコピー";
+"settings.providers.temperature" = "温度（Temperature）";
+"settings.providers.reasoning_effort" = "推論の強度";
+"settings.providers.reasoning_effort.unset" = "未設定";
+"settings.providers.reasoning_effort.none" = "なし";
+"settings.providers.reasoning_effort.low" = "低";
+"settings.providers.reasoning_effort.medium" = "中";
+"settings.providers.reasoning_effort.high" = "高";
+"settings.providers.reasoning_effort.xhigh" = "非常に高い";
+"settings.providers.reasoning_effort.max" = "最大";
+"settings.providers.test" = "テスト";
+"settings.providers.test_ok" = "接続に成功しました";
+"settings.providers.delete" = "削除";
+"settings.providers.duplicate" = "複製";
+"settings.providers.duplicate_button" = "複製";
+
+/* Settings - Prompts */
+"settings.prompts.select" = "編集するプロンプトを選択";
+"settings.prompts.expand_hint" = "フォルダをダブルクリックして展開";
+"settings.prompts.new_prompt" = "新規プロンプト";
+"settings.prompts.new_folder" = "新規フォルダ";
+"settings.prompts.new_prompt_here" = "ここにプロンプトを作成";
+"settings.prompts.new_subfolder" = "新規サブフォルダ";
+"settings.prompts.move_up" = "上に移動";
+"settings.prompts.move_down" = "下に移動";
+"settings.prompts.move_to" = "移動先…";
+"settings.prompts.root" = "ルート（最上位）";
+"settings.prompts.delete" = "削除";
+"settings.prompts.cancel" = "キャンセル";
+"settings.prompts.import" = "プロンプトを読み込む";
+"settings.prompts.export" = "プロンプトを書き出す";
+"settings.prompts.restore" = "デフォルトに戻す";
+"settings.prompts.auto_update" = "アプリと一緒に自動更新";
+"settings.prompts.auto_update_help" = "アプリの更新時にデフォルトのプロンプトも更新します。プロンプトをカスタマイズすると自動的に無効になります。";
+"settings.prompts.delete_title" = "「%@」を削除しますか？";
+"settings.prompts.delete_folder_message" = "このフォルダには %d 個の項目があります。中身はすべて完全に削除されます。";
+"settings.prompts.delete_prompt_message" = "このプロンプトは完全に削除されます。";
+"settings.prompts.restore_title" = "デフォルトのプロンプトに戻しますか？";
+"settings.prompts.restore_message" = "現在のプロンプトがすべて以下のデフォルトの内容に置き換わります。この操作は取り消せません。";
+"settings.prompts.restore_button" = "デフォルトに戻す";
+"settings.prompts.mnemonic_conflict_tooltip" = "このフォルダ内でニーモニックが重複しています";
+"settings.prompts.field.quick_paste" = "インライン実行";
+"settings.prompts.field.open_run" = "エディタで実行";
+"settings.prompts.shortcut_conflict_title" = "ショートカットはすでに使用されています";
+"settings.prompts.shortcut_conflict_message" = "%1$@ は現在「%2$@」（%3$@）に割り当てられています。別のプロンプトの割り当てを置き換えますか、それともキャンセルしますか？";
+"settings.prompts.shortcut_conflict_replace" = "置き換える";
+
+/* Settings - Prompt Editor */
+"settings.prompts.editor.general" = "一般";
+"settings.prompts.editor.name" = "名前";
+"settings.prompts.editor.mnemonic" = "ニーモニックキー";
+"settings.prompts.editor.modifiers" = "修飾キー";
+"settings.prompts.editor.type" = "種類";
+"settings.prompts.editor.provider" = "AI プロバイダ";
+"settings.prompts.editor.provider_default" = "デフォルトを使用";
+"settings.prompts.editor.display_mode" = "表示モード";
+"settings.prompts.editor.display_mode_default" = "デフォルトを使用";
+"settings.prompts.editor.folder" = "フォルダ";
+"settings.prompts.editor.prompt" = "プロンプト";
+"settings.prompts.editor.system_prompt" = "システムプロンプト";
+"settings.prompts.editor.generate_section" = "AI で生成";
+"settings.prompts.editor.generate_placeholder" = "このプロンプトで行いたいことを説明してください…";
+"settings.prompts.editor.generate_button" = "プロンプトを生成";
+"settings.prompts.editor.generating" = "生成中…";
+"settings.prompts.editor.ai_hint" = "デフォルトの AI プロバイダを使用します";
+"settings.prompts.editor.mnemonic_conflict" = "このフォルダの別のプロンプトが同じニーモニック（%@）を使っています。メニューからは片方しか選択できません。どちらかのキーを変更してください。";
+
+/* Settings - Samples */
+"settings.samples.default_structure" = "デフォルトのプロンプト構成";
+"settings.samples.actions" = "操作";
+"settings.samples.restore" = "デフォルトに戻す…";
+"settings.samples.export" = "プロンプトを書き出す…";
+"settings.samples.import" = "プロンプトを読み込む…";
+"settings.samples.restore_title" = "デフォルトに戻しますか？";
+"settings.samples.restore_message" = "現在のプロンプトがすべてデフォルトに置き換わります。この操作は取り消せません。";
+"settings.samples.restore_button" = "戻す";
+"settings.samples.defaults_restored" = "デフォルトに戻しました！";
+"settings.samples.exported" = "プロンプトを書き出しました！";
+"settings.samples.imported" = "プロンプトを読み込みました！";
+"settings.samples.import_failed" = "読み込みに失敗しました：%@";
+
+/* About */
+"about.title" = "ClipSlop";
+"about.subtitle" = "AI を活用したクリップボード処理ツール";
+"about.version" = "バージョン %@";
+"about.github" = "GitHub リポジトリ";
+"about.coffee" = "開発者にコーヒーをおごる";
+"about.updates" = "アップデートを確認";
+"about.libraries" = "サードパーティのライブラリ";
+"about.libraries.intro" = "ClipSlop は以下のオープンソースライブラリを使用しています：";
+"about.libraries.license" = "各ライブラリはそれぞれのオープンソースライセンスに基づいて使用しています。";
+"about.done" = "完了";
+
+/* Popup */
+"popup.prompts" = "プロンプト";
+"popup.back" = "戻る";
+"popup.select_all" = "すべて選択";
+"popup.copy" = "コピー";
+"popup.copy_and_close" = "コピーして閉じる";
+"popup.copy_close_paste" = "コピーして閉じ、ペースト";
+"popup.edit" = "編集";
+"popup.open" = "開く";
+"popup.save" = "保存";
+"popup.copied" = "コピーしました！";
+"popup.selection_copied" = "選択範囲をコピーしました！";
+"popup.editing" = "編集中";
+"popup.done" = "完了";
+"popup.cancel" = "キャンセル";
+"popup.dismiss" = "閉じる";
+"popup.try_again" = "再試行";
+"popup.sign_in_again" = "再度サインイン";
+"popup.hint.display" = "表示";
+"popup.mnemonic_hint" = "キーを押してプロンプトを選択";
+"popup.source" = "ソース";
+"popup.display" = "表示";
+"popup.hint.history" = "履歴";
+"popup.hint.page_down" = "次のページ ↓";
+"popup.hint.page_up" = "前のページ ↑";
+"popup.hint.back" = "戻る";
+"popup.hint.close" = "閉じる";
+"popup.hint.find" = "検索";
+"popup.hint.search" = "プロンプトを検索";
+"popup.hint.search_select" = "選択";
+"popup.hint.search_run" = "実行";
+"popup.hint.search_exit" = "検索を終了";
+"popup.search.placeholder" = "プロンプトを検索…";
+"popup.search.no_results" = "一致するプロンプトがありません";
+"popup.adhoc.placeholder" = "このテキストに行う処理を入力…";
+"popup.hint.adhoc" = "指示";
+"popup.hint.adhoc_run" = "実行";
+"popup.hint.adhoc_newline" = "改行";
+"popup.hint.adhoc_exit" = "キャンセル";
+"popup.processing" = "処理中…";
+"popup.receiving" = "応答を受信中…";
+
+/* Popup - History */
+"popup.history.original" = "元のテキスト";
+"popup.history.delete" = "削除";
+
+/* Popup - Navigator */
+"popup.navigator.press_key" = "キーを押して選択";
+"popup.navigator.back" = "戻る";
+"popup.navigator.close" = "閉じる";
+
+/* Menu Bar */
+"menu.trigger" = "選択したテキストを編集";
+"menu.clipboard" = "クリップボードを編集";
+"menu.blank" = "空のエディタを開く";
+"menu.ocr" = "画面上のテキストを編集";
+"menu.ocr_clipboard" = "画面上のテキストをコピー";
+"menu.quick_access" = "クイックアクセスを開く";
+"menu.magic" = "Magic Button";
+"menu.magic_ask" = "Magic Button（常に確認）";
+"menu.provider" = "プロバイダ：%@";
+"menu.model" = "モデル：%@";
+"menu.settings" = "設定…";
+"menu.onboarding" = "初期設定を表示…";
+"menu.coffee" = "開発者にコーヒーをおごる ☕";
+"menu.updates" = "アップデートを確認…";
+"menu.about" = "このアプリについて";
+"menu.quit" = "終了";
+
+/* Errors */
+"error.no_text" = "テキストが選択されておらず、クリップボードにもありません";
+"error.clipboard_empty" = "クリップボードは空です";
+"error.provider_not_found" = "プロバイダが見つかりません";
+"error.empty_response" = "応答が空です";
+
+/* Window titles */
+"window.settings" = "ClipSlop の設定";
+"window.about" = "ClipSlop について";
+
+/* Misc */
+"misc.manual_edit" = "手動編集";
+
+/* Menu Bar - Prompt Shortcuts */
+"menu.prompt_shortcuts" = "プロンプトのショートカット";
+"menu.prompt_shortcuts.open_run" = "エディタで実行";
+"menu.prompt_shortcuts.quick_paste" = "インライン実行";
+
+/* Settings - Prompt Editor - Global Shortcuts */
+"settings.prompts.editor.global_shortcuts" = "グローバルショートカット";
+"settings.prompts.editor.quick_paste" = "インライン実行：";
+"settings.prompts.editor.quick_paste_help" = "選択中のテキストにプロンプトを実行し、結果で置き換えます。ポップアップを開かず、その場で変換します。";
+"settings.prompts.editor.open_run" = "エディタで実行：";
+"settings.prompts.editor.open_run_help" = "選択したテキストを取得し、結果を ClipSlop のエディタで開きます。コピー前に確認や修正ができます。";
+"settings.prompts.editor.select_all" = "取得前にすべて選択";
+"settings.prompts.editor.select_all_help" = "テキストの取得前に ⌘A を実行します。フィールド全体を置き換える際に便利です";
+
+/* Settings - Quick Access */
+"settings.tab.quick_access" = "クイックアクセス";
+"settings.general.shortcuts.quick_access" = "クイックアクセスを開く：";
+"settings.quick_access.columns" = "列数";
+"settings.quick_access.auto_update" = "アプリと一緒に自動更新";
+"settings.quick_access.auto_update_help" = "アプリの更新時にデフォルトのクイックアクセスタイルも更新します。グリッドをカスタマイズすると自動的に無効になります。";
+"settings.quick_access.export" = "書き出す…";
+"settings.quick_access.export.help" = "現在のクイックアクセスのグリッドを JSON ファイルに保存します。";
+"settings.quick_access.import" = "読み込む…";
+"settings.quick_access.import.help" = "現在のクイックアクセスのグリッドを JSON ファイルの内容で置き換えます。";
+"settings.quick_access.restore" = "デフォルトに戻す";
+"settings.quick_access.restore.help" = "現在のグリッドを付属のデフォルトタイルで置き換えます。";
+"settings.quick_access.restore_title" = "クイックアクセスをデフォルトに戻しますか？";
+"settings.quick_access.restore_message" = "現在のクイックアクセスのグリッドが以下のデフォルトの内容に置き換わります。この操作は取り消せません。";
+"settings.quick_access.restore_button" = "デフォルトに戻す";
+"settings.quick_access.left_pane_hint" = "プロンプトをグリッドにドラッグ →";
+"settings.quick_access.grid_empty" = "ここにプロンプトをドロップしてタイルを追加";
+"settings.quick_access.grid_empty_hint" = "左側からプロンプトをドラッグしてください。";
+"settings.quick_access.method.label" = "操作";
+"settings.quick_access.method.inline" = "インライン実行";
+"settings.quick_access.method.open_in_clipslop" = "エディタで実行";
+"settings.quick_access.tile.remove" = "タイルを削除";
+"settings.quick_access.tile.in_use_badge" = "クイックアクセスに追加済み";
+"settings.quick_access.tile.missing" = "（削除されたプロンプト）";
+"quick_access.empty_state" = "タイルが設定されていません。\n「設定」→「クイックアクセス」で追加してください。";
+
+/* Shortcuts cheat sheet */
+"popup.hint.library" = "ライブラリ";
+"popup.hint.shortcuts" = "ショートカット";
+"shortcuts.title" = "キーボードショートカット";
+"shortcuts.section.viewing" = "表示";
+"shortcuts.section.actions" = "操作";
+"shortcuts.section.editing" = "編集";
+"shortcuts.section.search" = "プロンプト検索";
+"shortcuts.section.adhoc" = "クイック指示";
+"shortcuts.display_next" = "次の表示モード";
+"shortcuts.display_prev" = "前の表示モード";
+"shortcuts.toggle_library" = "プロンプトライブラリを表示／非表示";
+"shortcuts.toggle_overlay" = "ショートカット一覧を表示／非表示";
+"shortcuts.find_next" = "次の一致箇所";
+"shortcuts.find_prev" = "前の一致箇所";
+"shortcuts.settings" = "設定";
+
+/* Prompt Assistant */
+"settings.general.shortcuts.assistant" = "設定アシスタント：";
+"assistant.window.title" = "設定アシスタント";
+"assistant.using" = "%@ を使用中";
+"assistant.new_chat" = "新規チャット";
+"assistant.empty.title" = "チャットで ClipSlop を管理";
+"assistant.empty.body" = "プロンプトやフォルダの編集、Magic Button エンジン（ワークフロー、コアファイル、設定、モデルの振り分け）の調整、実行内容の説明を依頼できます。変更はすべて確認してから承認できます。";
+"assistant.thinking" = "考え中…";
+"assistant.input.placeholder" = "変更や説明を依頼してください…";
+"assistant.send" = "送信";
+"assistant.approve" = "承認";
+"assistant.reject" = "却下";
+"assistant.applied" = "適用済み";
+"assistant.declined" = "却下済み";
+"assistant.unsupported.title" = "ツール呼び出しに対応したプロバイダが必要です";
+"assistant.unsupported.body" = "設定アシスタントには、OpenAI や Anthropic のようなツール呼び出しに対応したプロバイダが必要です。デフォルトのプロバイダを切り替えてください。";
+"assistant.unsupported.open_settings" = "プロバイダの設定を開く";
+"assistant.error.no_provider" = "ツール呼び出しに対応した AI プロバイダがデフォルトに設定されていません。設定で OpenAI または Anthropic を追加するか選択してください。";
+"assistant.error.max_steps" = "1 つのメッセージで実行できるステップ数の上限に達しました。どのように続けるか教えてください。";
+"assistant.error.empty" = "アシスタントから空の応答が返されました。もう一度お試しください。";
+
+/* Prompt Assistant onboarding */
+"onboarding.shortcuts.assistant" = "設定アシスタント";
+"onboarding.assistant.title" = "設定アシスタントの紹介";
+"onboarding.assistant.subtitle" = "チャットで依頼するだけで、プロンプトライブラリの編集や Magic Button エンジンの調整ができます。設定を探し回る必要はありません。変更は適用前にすべて確認できます。";
+"onboarding.assistant.feature.edit" = "チャットでプロンプトを作成・編集";
+"onboarding.assistant.feature.organize" = "フォルダの整理やプロンプトの移動";
+"onboarding.assistant.feature.shortcuts" = "ショートカットの割り当てとプロンプトのモード設定";
+"onboarding.assistant.try" = "試してみる";
+"assistant.intro_message" = "こんにちは！何ができて、どんなことを手伝ってもらえますか？";
+"menu.assistant" = "設定アシスタント";
+"settings.prompts.assistant.title" = "設定アシスタント";
+"settings.prompts.assistant.hint" = "プロンプトの作成、編集、移動、整理を普段の言葉でアシスタントに依頼できます。Magic Button エンジン全体の調整も可能です。";
+"settings.prompts.assistant.open" = "アシスタントを開く";
+
+// Magic Button (context engine V0)
+"magic.name" = "Magic Button";
+"magic.hud.no_routable_workflow" = "このアプリやフィールドに一致するワークフローがありません。`when:` ブロックを含むワークフローカードを追加または修正してください（設定 → Magic）。";
+"magic.hud.no_target" = "テキストフィールドをクリックするかテキストを選択してから、Magic のショートカットを押してください。";
+"magic.chips.hint_placeholder" = "希望する内容を入力…";
+"magic.chips.context_blind" = "読み取れる内容がありません。このアプリは内容を共有していない可能性があります。入力したヒントをもとに結果を生成します。";
+"magic.chips.planner_thinking" = "適切な操作を選択中です。自分で選ぶこともできます…";
+"magic.chips.footer" = "↩ 送信 · 1–4 選択 · esc キャンセル";
+"magic.toast.inserted" = "挿入しました";
+"magic.toast.undo" = "取り消す";
+"magic.toast.regenerate" = "再生成";
+"magic.toast.copy" = "コピー";
+"magic.toast.close" = "閉じる";
+"magic.toast.refine" = "修正…";
+"magic.toast.refine_hint" = "下書きをどう変更するか入力";
+"magic.toast.refine_send" = "適用";
+"magic.toast.previous_copied" = "以前のテキストをクリップボードにコピーしました";
+"magic.toast.result_ready" = "結果を生成しました。必要な場所にコピーしてください";
+"magic.toast.focus_moved" = "フィールドが変わったため、挿入しませんでした。結果をコピーしてください。";
+"magic.toast.verifier_failed" = "挿入する前に確認してください";
+"magic.toast.insert_anyway" = "長押しして挿入";
+"magic.toast.insert_anyway_release" = "離して挿入";
+"magic.verifier.language_mismatch" = "下書きの言語は「%@」ですが、会話の言語は「%@」です";
+"magic.verifier.too_long" = "下書きは %@ 文字です（上限 %@ 文字）";
+"magic.verifier.constraint_hit" = "ルール「%@」に違反しています（constraints.md の %@ 行目）";
+"magic.verifier.ungrounded" = "「%@」はコンテキスト内に見つかりません";
+"magic.verifier.actionable_untrusted" = "「%@」は画面上の内容にのみ含まれています。送信前に確認してください";
+"onboarding.shortcuts.magic" = "Magic Button";
+"onboarding.magic.interview.title" = "あなたらしい書き方を教える";
+"onboarding.magic.interview.subtitle" = "Magic Button はあなたに代わって文章を書きます。名前、役割、実際に送った 3 つのメッセージを教えることで、あなたらしい書き方を学びます。";
+"onboarding.magic.interview.name" = "名前";
+"onboarding.magic.interview.role" = "役割（例：iOS 開発者、創業者）";
+"onboarding.magic.interview.messages_heading" = "実際に送った 3 つのメッセージ";
+"onboarding.magic.interview.message_hint_0" = "仕事のメールや返信";
+"onboarding.magic.interview.message_hint_1" = "チャットのメッセージ（Slack、Telegram など）";
+"onboarding.magic.interview.message_hint_2" = "コメントやメモなど、その他の文章";
+"onboarding.magic.interview.skip_hint" = "スキップできます。内容は ~/.clipslop/core/ でいつでも編集できます";
+"onboarding.magic.walkthrough.title" = "Magic Button を試す";
+"onboarding.magic.walkthrough.subtitle" = "下の入力欄で次のキーを押してください：";
+"onboarding.magic.walkthrough.step_empty" = "1. 入力欄が空の状態でショートカットを押すと、コンテキストから下書きを生成します";
+"onboarding.magic.walkthrough.step_continue" = "2. 数語入力して再び押すと、下書きの続きを生成します";
+"onboarding.magic.walkthrough.step_instruct" = "3. 短い指示を入力して選択し、キーを押すと、その内容が依頼になります";
+"onboarding.magic.walkthrough.select_note" = "入力した指示を選択";
+"onboarding.magic.walkthrough.reset" = "クリア";
+"onboarding.magic.walkthrough.no_provider" = "先に AI プロバイダを設定するか（前のステップ）、この手順をスキップしてください。";
+"settings.general.shortcuts.magic" = "Magic Button";
+"settings.general.shortcuts.magic_chips" = "Magic Button（常に確認）";
+"settings.providers.magic_role" = "Magic Button のモデル";
+"settings.providers.magic_role.default" = "デフォルト";
+"settings.tab.magic" = "Magic";
+"settings.magic.section.system" = "システムプロンプト";
+"settings.magic.section.core" = "コアメモリ";
+"settings.magic.section.workflows" = "ワークフロー";
+"settings.magic.system_prompt" = "生成用システムプロンプト";
+"settings.magic.planner_prompt" = "プランナー用システムプロンプト";
+"settings.magic.reset" = "デフォルトに戻す";
+"settings.magic.reveal" = "Finder で表示";
+"settings.magic.reveal_folder" = "~/.clipslop を開く";
+"settings.magic.select_file" = "編集するファイルを選択";
+"settings.magic.section.engine" = "エンジン";
+"settings.magic.debug_log" = "デバッグログ";
+"settings.magic.debug_log.help" = "実行のたびに、プロンプト全文、画面の内容、モデルの出力を含む記録を ~/.clipslop/logs/debug/ に保存します（7 日後に削除）。";
+"settings.magic.skill.install" = "エージェントスキルをインストール…";
+"settings.magic.skill.help" = "付属のエージェントスキルを書き出します。Claude Code などの AI エージェントが ~/.clipslop を通じて ClipSlop を設定・監査するための知識パッケージです。";
+"settings.magic.skill.claude_code" = "Claude Code (~/.claude/skills)";
+"settings.magic.skill.export" = "書き出す…";
+"settings.magic.skill.export.prompt" = "書き出す";
+"settings.magic.skill.export.message" = "フォルダを選択してください。その中に「clipslop」ディレクトリとしてスキルを作成します。";
+"settings.magic.skill.overwrite.title" = "インストール済みのスキルを置き換えますか？";
+"settings.magic.skill.overwrite.message" = "この場所にはすでに ClipSlop のスキル（バージョン %@）があります。バージョン %@ に置き換えますか？";
+"settings.magic.skill.overwrite.replace" = "置き換える";
+"settings.magic.skill.overwrite.cancel" = "キャンセル";
+"settings.magic.skill.done.title" = "エージェントスキルをインストールしました";
+"settings.magic.skill.done.message" = "スキルの保存先：%@";
+"settings.magic.skill.done.ok" = "OK";
+"settings.magic.skill.error.title" = "スキルをインストールできませんでした";
+
+/* Find bar */
+"popup.find.count" = "%2$d 件中 %1$d 件目";
+"popup.find.no_matches" = "一致する項目はありません";
+
+/* Editor toolbar */
+"editor.bold" = "太字";
+"editor.italic" = "斜体";
+"editor.underline" = "下線";
+"editor.strikethrough" = "取り消し線";
+"editor.inline_code" = "インラインコード";
+"editor.heading" = "見出し %d";
+"editor.bullet_list" = "箇条書き";
+"editor.numbered_list" = "番号付きリスト";
+"editor.blockquote" = "引用";
+"editor.code_block" = "コードブロック";
+"editor.insert_link" = "リンクを挿入";
+"editor.insert_image" = "画像を挿入";
+"editor.horizontal_rule" = "水平線";
+"editor.redo" = "やり直す";
+"editor.preview" = "プレビュー";
+"editor.edit_link" = "リンクを編集";
+"editor.link_text_optional" = "テキスト（任意）";
+"editor.remove_link" = "リンクを削除";
+"editor.update" = "更新";
+"editor.insert" = "挿入";
+"editor.text_color" = "文字色";
+"editor.highlight" = "ハイライト";
+"editor.html_source" = "HTML ソース";

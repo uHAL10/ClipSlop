@@ -247,6 +247,7 @@ private struct ChipKeyHandler: NSViewRepresentable {
             guard window != nil, monitor == nil else { return }
             monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
                 guard let self, let handler = self.handler else { return event }
+                guard !isComposingText(event.window?.firstResponder) else { return event }
 
                 // Escape cancels the press — checked before the window guard
                 // so it works no matter which of our windows is key.
