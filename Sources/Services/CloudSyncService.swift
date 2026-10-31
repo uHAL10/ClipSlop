@@ -51,8 +51,8 @@ final class CloudSyncService {
     }
 
     private var hasCompletedInitialSync: Bool {
-        get { UserDefaults.standard.bool(forKey: initialSyncFlagKey) }
-        set { UserDefaults.standard.set(newValue, forKey: initialSyncFlagKey) }
+        get { Constants.userDefaults.bool(forKey: initialSyncFlagKey) }
+        set { Constants.userDefaults.set(newValue, forKey: initialSyncFlagKey) }
     }
 
     private var documentsURL: URL? { containerURL?.appendingPathComponent("Documents") }

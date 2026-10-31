@@ -1,5 +1,11 @@
 import SwiftUI
 
+#if DEBUG
+#Preview("Editor") {
+    PopupEditorPreview()
+}
+#endif
+
 struct PromptNavigatorView: View {
     let appState: AppState
     private let loc = Loc.shared
@@ -19,7 +25,7 @@ struct PromptNavigatorView: View {
                     spacing: 12
                 ) {
                     ForEach(appState.currentPrompts) { node in
-                        PromptCard(node: node) {
+                        PromptRow(node: node) {
                             appState.navigateInto(node)
                         }
                     }
@@ -62,7 +68,7 @@ struct PromptNavigatorView: View {
     }
 }
 
-struct PromptCard: View {
+struct PromptRow: View {
     let node: PromptNode
     let action: () -> Void
     @State private var isHovered = false
@@ -71,10 +77,10 @@ struct PromptCard: View {
         Button(action: action) {
             HStack(spacing: 8) {
                 Text(node.mnemonicDisplay)
-                    .font(.system(node.mnemonicModifiers == nil && !isSpecialKeyIdentifier(node.mnemonicKey) ? .body : .caption, design: .rounded, weight: .bold))
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
-                    .frame(minWidth: 28, minHeight: 28)
-                    .padding(.horizontal, node.mnemonicModifiers == nil && !isSpecialKeyIdentifier(node.mnemonicKey) ? 0 : 4)
+                    .frame(minWidth: 20, minHeight: 20)
+                    .padding(.horizontal, node.mnemonicModifiers == nil && !isSpecialKeyIdentifier(node.mnemonicKey) ? 0 : 3)
                     .background(node.isFolder ? Color.blue : Color.purple)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
 
@@ -93,14 +99,11 @@ struct PromptCard: View {
                         .foregroundStyle(.tertiary)
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(isHovered ? AnyShapeStyle(.primary.opacity(0.08)) : AnyShapeStyle(.background.opacity(0.6)))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .strokeBorder(isHovered ? AnyShapeStyle(.primary.opacity(0.2)) : AnyShapeStyle(.quaternary))
-            )
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .background(isHovered ? Color.primary.opacity(0.08) : .clear)
         }
         .buttonStyle(.plain)
         .onHover { isHovered = $0 }

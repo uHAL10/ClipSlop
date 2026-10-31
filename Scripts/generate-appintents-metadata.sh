@@ -93,12 +93,12 @@ fi
 # a structurally valid but EMPTY metadata bundle with no error anywhere, so we
 # fail loudly instead of guessing.
 #
-#   1. Universal build (`--arch arm64 --arch x86_64`, what release CI uses)
-#      switches SwiftPM to the Xcode build system entirely.
+#   1. Universal builds use Xcode, which puts library values in `_Module.build`.
 #   2. Single-arch release uses whole-module optimisation -> one merged file.
 #   3. Single-arch debug compiles incrementally -> one file PER SOURCE FILE.
 XCODE_CONFIG="$(echo "${CONFIG:0:1}" | tr '[:lower:]' '[:upper:]')${CONFIG:1}"
 CANDIDATE_DIRS=(
+    ".build/apple/Intermediates.noindex/${MODULE}.build/${XCODE_CONFIG}/${MODULE}_Module.build/Objects-normal/${ARCH}"
     ".build/apple/Intermediates.noindex/${MODULE}.build/${XCODE_CONFIG}/${MODULE}.build/Objects-normal/${ARCH}"
     ".build/${ARCH}-apple-macosx/${CONFIG}/${MODULE}.build"
 )

@@ -3,13 +3,12 @@ import KeyboardShortcuts
 import LaunchAtLogin
 import Sparkle
 
-@main
-struct ClipSlopApp: App {
+public struct ClipSlopApp: App {
     @State private var appState: AppState
     @State private var updater: SparkleUpdater
     @State private var menuBarVisible: Bool
 
-    init() {
+    public init() {
         let state = AppState()
         let upd = SparkleUpdater()
         _appState = State(wrappedValue: state)
@@ -26,7 +25,7 @@ struct ClipSlopApp: App {
         state.setup()
     }
 
-    var body: some Scene {
+    public var body: some Scene {
         MenuBarExtra("ClipSlop", systemImage: "doc.on.clipboard", isInserted: $menuBarVisible) {
             MenuBarView(appState: appState, updater: updater)
                 .onReceive(NotificationCenter.default.publisher(for: .menuBarVisibilityChanged)) { _ in

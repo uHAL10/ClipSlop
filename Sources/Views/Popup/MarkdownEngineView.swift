@@ -16,6 +16,7 @@ import SwiftUI
 struct MarkdownEngineView: View {
     @Binding var text: String
     var isEditable: Bool = true
+    @Binding var showPreview: Bool
     var findBarState: FindBarState?
 
     @State private var bridge = MarkdownEngineBridge()
@@ -23,17 +24,24 @@ struct MarkdownEngineView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if isEditable {
-                toolbar
-                Divider()
-            }
-
             // .fitsContent + outer SwiftUI ScrollView is the engine's documented
             // SwiftUI embedding. The internal `.scrolls` mode measures document
             // height via TextKit 2, which under-measures on macOS 26 — the view
             // wouldn't scroll and the caret could leave the visible area. In
             // .fitsContent mode the engine reports its height to SwiftUI and
             // propagates caret reveals to this enclosing scroller explicitly.
+            if showPreview {
+                if findBarState?.isVisible == true {
+                    ConstrainedRichHTMLEditor(
+                        html: .constant(MarkdownConverter.html(from: text)),
+                        toolbarState: HTMLToolbarState(),
+                        isEditable: false,
+                        findBarState: findBarState
+                    )
+                } else {
+                    MarkdownPreviewView(markdown: text)
+                }
+            } else {
             ScrollView {
                 NativeTextViewWrapper(
                     text: $text,
@@ -55,98 +63,17 @@ struct MarkdownEngineView: View {
                         .allowsHitTesting(false)
                 }
             }
+            }
         }
         .onAppear {
-            findBarState?.activeBackend = bridge
+            if !showPreview { findBarState?.activeBackend = bridge }
+        }
+        .onChange(of: showPreview) {
+            if !showPreview { findBarState?.activeBackend = bridge }
+            findBarState?.clearAndReSearch()
         }
     }
 
-    // MARK: Toolbar (mirrors MarkdownEditorView's, posts engine bus requests)
-
-    private var toolbar: some View {
-        HStack(spacing: 2) {
-            toolbarButton("B", icon: "bold", help: loc.t("editor.bold") + " ⌘B") { bridge.post(\.applyBoldRequest) }
-                .fontWeight(.bold)
-            toolbarButton("I", icon: "italic", help: loc.t("editor.italic") + " ⌘I") { bridge.post(\.applyItalicRequest) }
-                .italic()
-            toolbarButton("S", icon: "strikethrough", help: loc.t("editor.strikethrough")) { bridge.post(\.applyStrikethroughRequest) }
-                .strikethrough()
-            toolbarButton(nil, icon: "chevron.left.forwardslash.chevron.right", help: loc.t("editor.inline_code")) {
-                bridge.post(\.applyInlineCodeRequest)
-            }
-
-            toolbarSeparator
-
-            Menu {
-                Button(loc.t("editor.heading", 1)) { bridge.post(\.applyHeadingRequest, userInfo: ["level": 1]) }
-                Button(loc.t("editor.heading", 2)) { bridge.post(\.applyHeadingRequest, userInfo: ["level": 2]) }
-                Button(loc.t("editor.heading", 3)) { bridge.post(\.applyHeadingRequest, userInfo: ["level": 3]) }
-            } label: {
-                Text("H")
-                    .font(.system(.body, design: .default))
-                    .fontWeight(.semibold)
-                    .frame(width: 28, height: 28)
-            }
-            .menuStyle(.button)
-            .buttonStyle(.bordered)
-            .controlSize(.small)
-            .frame(height: 28)
-
-            toolbarSeparator
-
-            toolbarButton(nil, icon: "list.bullet", help: loc.t("editor.bullet_list")) { bridge.post(\.applyUnorderedListRequest) }
-            toolbarButton(nil, icon: "list.number", help: loc.t("editor.numbered_list")) { bridge.post(\.applyOrderedListRequest) }
-            toolbarButton(nil, icon: "text.quote", help: loc.t("editor.blockquote")) { bridge.post(\.applyBlockquoteRequest) }
-            toolbarButton(nil, icon: "curlybraces", help: loc.t("editor.code_block")) { bridge.post(\.applyCodeBlockRequest) }
-
-            toolbarSeparator
-
-            toolbarButton(nil, icon: "link", help: loc.t("editor.insert_link")) { bridge.post(\.applyLinkRequest) }
-            toolbarButton(nil, icon: "minus", help: loc.t("editor.horizontal_rule")) { bridge.post(\.applyHorizontalRuleRequest) }
-
-            toolbarSeparator
-
-            toolbarButton(nil, icon: "arrow.uturn.backward", help: loc.t("magic.toast.undo") + " ⌘Z") {
-                NSApp.sendAction(Selector(("undo:")), to: nil, from: nil)
-            }
-            toolbarButton(nil, icon: "arrow.uturn.forward", help: loc.t("editor.redo") + " ⇧⌘Z") {
-                NSApp.sendAction(Selector(("redo:")), to: nil, from: nil)
-            }
-
-            Spacer()
-
-            Text("Markdown (\(loc.t("settings.general.behavior.markdown_editor.styled")))")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-    }
-
-    private var toolbarSeparator: some View {
-        Divider().frame(height: 16).padding(.horizontal, 4)
-    }
-
-    private func toolbarButton(
-        _ label: String?,
-        icon: String,
-        help: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            if let label {
-                Text(label)
-                    .font(.system(.body, design: .default))
-                    .frame(width: 28, height: 24)
-            } else {
-                Image(systemName: icon)
-                    .frame(width: 28, height: 24)
-            }
-        }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
-        .help(help)
-    }
 }
 
 // MARK: - Read-only cursor fix

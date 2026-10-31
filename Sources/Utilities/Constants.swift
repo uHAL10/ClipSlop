@@ -3,6 +3,23 @@ import Foundation
 enum Constants {
     static let appName = "ClipSlop"
 
+    // Preview hosts must not share the user's files or preferences.
+    #if DEBUG
+    static let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+    static let previewDirectory = FileManager.default.temporaryDirectory
+        .appendingPathComponent("ClipSlop-Preview-\(ProcessInfo.processInfo.processIdentifier)")
+    #else
+    static let isPreview = false
+    #endif
+
+    @MainActor static let userDefaults: UserDefaults = {
+        guard isPreview else { return .standard }
+        guard let defaults = UserDefaults(suiteName: "io.github.uhal10.clipslop.preview") else {
+            fatalError("Could not initialize Xcode preview preferences")
+        }
+        return defaults
+    }()
+
     /// Keychain service name. Deliberately the *release* identifier even in dev
     /// builds, so a locally-bundled ClipSlop can reuse the API keys already
     /// stored on this machine instead of demanding they be re-entered.
@@ -22,6 +39,17 @@ enum Constants {
     /// would overwrite the real prompt library with the bundled defaults on first
     /// launch, and iCloud would then propagate the loss to every other Mac.
     static let appSupportDirectory: URL = {
+        #if DEBUG
+        if isPreview {
+            let url = previewDirectory.appendingPathComponent("Application Support")
+            do {
+                try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+            } catch {
+                fatalError("Could not create Xcode preview directory: \(error)")
+            }
+            return url
+        }
+        #endif
         let folder = isDevBuild ? "ClipSlop-dev" : "ClipSlop"
         let url = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent(folder)

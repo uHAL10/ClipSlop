@@ -70,32 +70,45 @@ final class AppState {
     var navigationPath: [PromptNode] = []
     var selectedHistoryStepIndex: Int?
 
-    // Edit mode
-    var isEditing = false
-    var editingText = ""
+    private var editingDrafts: [String: String] = [:]
+
+    private var editingDraftKey: String? {
+        guard let session = currentSession else { return nil }
+        if isViewingOriginal { return "\(session.id)-original" }
+        let index = selectedHistoryStepIndex ?? (session.steps.count - 1)
+        guard session.steps.indices.contains(index) else { return nil }
+        return "\(session.id)-\(session.steps[index].id)"
+    }
+
+    var editingText: String {
+        get { editingDraftKey.flatMap { editingDrafts[$0] } ?? currentDisplayText }
+        set {
+            guard let key = editingDraftKey else { return }
+            editingDrafts[key] = newValue
+        }
+    }
+
+    var hasUnappliedEdit: Bool {
+        editingText != currentDisplayText
+    }
 
     // Shortcuts cheat-sheet overlay (⌘/) — session-only, never persisted
     var isShortcutsOverlayVisible = false
 
-    // Ad-hoc instruction bar (⌘K) — a one-off typed prompt that replaces
-    // the prompt-library block while active. The draft survives Esc so an
-    // accidental close doesn't eat a half-typed instruction; it's cleared
-    // after a successful run and when the popup closes.
+    // The instruction draft survives focus changes and is cleared after a run
+    // or when the popup closes.
     var isAdHocPromptActive = false
     var adHocPromptText = ""
+    @ObservationIgnored weak var adHocInputView: NSTextView?
 
     // Pending prompt for Open & Run shortcut
     var pendingPromptNode: PromptNode?
 
-    // Original item view mode (which representation to show for the original text)
-    var originalViewMode: RichTextMode = .plainText
     // Runtime display format (independent from settings default)
+    var isEditing = false
     var activeEditorMode: EditorMode = .markdown
     // Display mode for the original item — initialized from settings, updated by user
     var originalDisplayMode: EditorMode = .markdown
-    // Lazy caches for original text conversions
-    @ObservationIgnored private var cachedOriginalMarkdown: String?
-    @ObservationIgnored private var cachedOriginalMarkdownAI: String?
 
     // Settings navigation
     var settingsSelectedTab = 0
@@ -139,7 +152,7 @@ final class AppState {
         guard let session = currentSession else { return "" }
         if let index = selectedHistoryStepIndex {
             if index < 0 {
-                return originalTextForCurrentMode
+                return session.originalText
             }
             if index < session.steps.count {
                 return session.steps[index].outputText
@@ -147,7 +160,7 @@ final class AppState {
         }
         // No steps yet — show original in selected view mode
         if !session.hasSteps {
-            return originalTextForCurrentMode
+            return session.originalText
         }
         return session.currentText
     }
@@ -176,66 +189,6 @@ final class AppState {
         let pendingIndex = session.steps.count - 1
         let viewingIndex = selectedHistoryStepIndex ?? pendingIndex
         return viewingIndex == pendingIndex
-    }
-
-    /// Returns the original text in the representation selected by `originalViewMode`.
-    var originalTextForCurrentMode: String {
-        guard let session = currentSession else { return "" }
-        switch originalViewMode {
-        case .plainText:
-            return session.originalText
-        case .html:
-            return session.originalHTML ?? session.originalText
-        case .markdown:
-            if let cached = cachedOriginalMarkdown { return cached }
-            if let html = session.originalHTML,
-               let md = MarkdownConverter.markdown(fromHTML: html), !md.isEmpty {
-                cachedOriginalMarkdown = md
-                return md
-            }
-            return session.originalText
-        case .markdownAI:
-            // AI conversion is triggered lazily — show cached or original until ready
-            return cachedOriginalMarkdownAI ?? session.originalText
-        }
-    }
-
-    /// Trigger lazy AI conversion for the original item.
-    func convertOriginalWithAI() {
-        guard cachedOriginalMarkdownAI == nil,
-              let session = currentSession,
-              let html = session.originalHTML
-        else { return }
-
-        let prompt = settings.customConversionPrompt.isEmpty
-            ? AppSettings.defaultConversionPrompt
-            : settings.customConversionPrompt
-
-        guard let provider = providerStore.defaultProvider else {
-            openSettingsToProviders()
-            return
-        }
-
-        isProcessing = true
-        streamingText = ""
-        let service = AIServiceFactory.service(for: provider.providerType)
-        let config = provider
-
-        currentTask = Task {
-            do {
-                let result = try await service.process(text: html, systemPrompt: prompt, config: config)
-                cachedOriginalMarkdownAI = result
-                isProcessing = false
-                streamingText = ""
-            } catch {
-                let wasCancelled = error is CancellationError || Task.isCancelled
-                if !wasCancelled {
-                    setError(from: error, providerType: config.providerType)
-                }
-                isProcessing = false
-                streamingText = ""
-            }
-        }
     }
 
     // MARK: - Lifecycle
@@ -458,7 +411,7 @@ final class AppState {
 
     func completeOnboarding() {
         settings.hasCompletedOnboarding = true
-        UserDefaults.standard.removeObject(forKey: "onboardingStep")
+        Constants.userDefaults.removeObject(forKey: "onboardingStep")
         onboardingWindow?.close()
         onboardingWindow = nil
     }
@@ -514,10 +467,10 @@ final class AppState {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             guard let self else { return }
             let plainText = ClipboardService.getText()
-            let html = ClipboardService.getHTML()
+
 
             if let text = plainText, !text.isEmpty, text != oldClipboard {
-                self.startSession(text: text, html: html, source: .selectedText)
+                self.startSession(text: text, source: .selectedText)
                 return
             }
 
@@ -529,7 +482,7 @@ final class AppState {
 
             // Last resort: use whatever is in the clipboard
             if let text = plainText, !text.isEmpty {
-                self.startSession(text: text, html: html, source: .clipboard)
+                self.startSession(text: text, source: .clipboard)
             } else {
                 self.pendingPromptNode = nil
                 self.showError(Loc.shared.t("error.no_text"))
@@ -538,25 +491,22 @@ final class AppState {
     }
 
     func triggerBlankEditor() {
+        isEditing = true
         // Reset all state before showing popup to prevent stale session flash
         resetSessionState()
         currentSession = TransformationSession(originalText: "", inputSource: .clipboard)
-        cachedOriginalMarkdown = nil
-        cachedOriginalMarkdownAI = nil
         activeEditorMode = settings.editorMode
-        isEditing = true
-        editingText = ""
         showPopup()
     }
 
     func triggerFromClipboard() {
         let plainText = ClipboardService.getText()
-        let html = ClipboardService.getHTML()
+
         guard let text = plainText, !text.isEmpty else {
             showError(Loc.shared.t("error.clipboard_empty"))
             return
         }
-        startSession(text: text, html: html, source: .clipboard)
+        startSession(text: text, source: .clipboard)
     }
 
     func triggerFromScreenCapture() {
@@ -596,20 +546,20 @@ final class AppState {
     /// Seam for App Intents, which need to seed the editor from text supplied by
     /// the caller rather than from the clipboard or a selection. `startSession` is
     /// file-private, so the intent extension cannot reach it directly.
-    func startSessionForIntent(text: String, html: String? = nil) {
-        startSession(text: text, html: html, source: .clipboard)
+    func startSessionForIntent(text: String) {
+        startSession(text: text, source: .clipboard)
     }
 
-    private func startSession(text: String, html: String? = nil, source: TransformationSession.InputSource) {
+    private func startSession(text: String, source: TransformationSession.InputSource) {
+        isEditing = false
         currentSession = TransformationSession(
             originalText: text,
-            originalHTML: html,
+
             inputSource: source
         )
         navigationPath = []
         selectedHistoryStepIndex = nil
-        isEditing = false
-        editingText = ""
+        editingDrafts.removeAll()
         errorMessage = nil
         errorDetail = nil
         streamingText = ""
@@ -618,11 +568,8 @@ final class AppState {
         adHocPromptText = ""
 
         // Reset lazy caches
-        cachedOriginalMarkdown = nil
-        cachedOriginalMarkdownAI = nil
 
         // Pre-select modes from settings (runtime copies, independent from settings)
-        originalViewMode = settings.richTextMode
         activeEditorMode = settings.editorMode
         originalDisplayMode = settings.editorMode
 
@@ -634,13 +581,6 @@ final class AppState {
             navigateInto(prompt)
         }
 
-        // If markdownAI is pre-selected and we have HTML, trigger lazy conversion
-        if originalViewMode == .markdownAI, html != nil, source != .screenCapture {
-            let shouldConvert = !settings.markdownAIOnlyRichText || html != nil
-            if shouldConvert {
-                convertOriginalWithAI()
-            }
-        }
     }
 
     // MARK: - Navigation
@@ -692,11 +632,11 @@ final class AppState {
     func activateAdHocPrompt() {
         guard !isProcessing, errorMessage == nil, currentSession != nil else { return }
         promptSearchState.deactivate()
-        isAdHocPromptActive = true
+        adHocInputView?.window?.makeFirstResponder(adHocInputView)
     }
 
     func deactivateAdHocPrompt() {
-        isAdHocPromptActive = false
+        adHocInputView?.window?.makeFirstResponder(nil)
     }
 
     /// Runs the typed one-off instruction through the configurable ad-hoc
@@ -711,7 +651,6 @@ final class AppState {
             : settings.adHocSystemPrompt
         let systemPrompt = AdHocPromptComposer.compose(template: template, instruction: instruction)
 
-        isAdHocPromptActive = false
         adHocPromptText = ""
         applyPrompt(name: AdHocPromptComposer.stepName(for: instruction), systemPrompt: systemPrompt)
     }
@@ -736,17 +675,29 @@ final class AppState {
         // finishes (see `shouldShowProcessingView`), but chaining a new
         // prompt has to wait so the two runs can't race to mutate the
         // session.
-        guard !isProcessing, var session = currentSession else { return }
+        guard !isProcessing, currentSession != nil else { return }
+        saveEdit()
+        guard var session = currentSession else { return }
+
+        #if DEBUG
+        // Preview interactions must not send sample text to an AI provider.
+        if Constants.isPreview {
+            currentSession = session.addingStep(
+                promptName: name,
+                outputText: "Preview: \(name)\n\n\(currentDisplayText)",
+                displayMode: activeEditorMode,
+                inputText: currentDisplayText,
+                sourceIndex: selectedHistoryStepIndex
+            )
+            selectedHistoryStepIndex = nil
+            return
+        }
+        #endif
 
         // Use prompt-specific provider if set, otherwise fall back to default
         guard let provider = providerStore.provider(preferring: providerID) else {
             openSettingsToProviders()
             return
-        }
-
-        // If viewing a history step, truncate to that step first
-        if let index = selectedHistoryStepIndex, index >= 0 {
-            session = session.steppingTo(index: index)
         }
 
         let inputText = currentDisplayText
@@ -756,7 +707,7 @@ final class AppState {
         // shows up right away instead of only once the response finishes.
         // Tracked by id (not position) so it's still found correctly even
         // if other history steps are edited or deleted while it's in flight.
-        session = session.addingStep(promptName: name, outputText: "", displayMode: activeEditorMode, isPending: true)
+        session = session.addingStep(promptName: name, outputText: "", displayMode: activeEditorMode, isPending: true, inputText: inputText, sourceIndex: selectedHistoryStepIndex)
         pendingStepID = session.steps.last?.id
         currentSession = session
         selectedHistoryStepIndex = nil
@@ -895,39 +846,18 @@ final class AppState {
         }
     }
 
-    // MARK: - Edit Mode
-
-    func startEditing() {
-        // A background prompt may still be writing to the session (e.g. the
-        // user switched to an older tab while a newer one is generating) —
-        // block editing until it settles so a manual edit can't race with
-        // the pending step being finalized/dropped.
-        guard !isProcessing else { return }
-        editingText = currentDisplayText
-        isEditing = true
-    }
+    // MARK: - Manual edits
 
     func saveEdit() {
-        guard isEditing, let session = currentSession else { return }
-        let text = editingText
-        guard !text.isEmpty else {
-            isEditing = false
-            return
-        }
-
-        // If original text is empty (blank editor), set it as the original
-        if session.originalText.isEmpty {
-            currentSession = TransformationSession(originalText: text, inputSource: session.inputSource)
-        } else if text != currentDisplayText {
-            currentSession = session.addingStep(promptName: Loc.shared.t("misc.manual_edit"), outputText: text, displayMode: activeEditorMode)
-        }
+        guard !isProcessing, let session = currentSession, let key = editingDraftKey,
+              let text = editingDrafts[key], text != currentDisplayText else { return }
+        let input = currentDisplayText
+        currentSession = session.addingStep(
+            promptName: Loc.shared.t("misc.manual_edit"), outputText: text,
+            displayMode: activeEditorMode, inputText: input, sourceIndex: selectedHistoryStepIndex
+        )
+        editingDrafts.removeValue(forKey: key)
         selectedHistoryStepIndex = nil
-        isEditing = false
-    }
-
-    func cancelEdit() {
-        isEditing = false
-        editingText = ""
     }
 
     func openInTextEdit() {
@@ -939,23 +869,6 @@ final class AppState {
             .appendingPathExtension("txt")
         try? text.write(to: tempURL, atomically: true, encoding: .utf8)
         NSWorkspace.shared.open(tempURL)
-    }
-
-    func saveToFile() {
-        let text = currentDisplayText
-        guard !text.isEmpty else { return }
-
-        let panel = NSSavePanel()
-        panel.nameFieldStringValue = "ClipSlop output.txt"
-        panel.allowedContentTypes = [.plainText]
-
-        // Show as sheet on the popup window so it's not hidden behind it
-        if let window = popupWindow {
-            panel.beginSheetModal(for: window) { response in
-                guard response == .OK, let url = panel.url else { return }
-                try? text.write(to: url, atomically: true, encoding: .utf8)
-            }
-        }
     }
 
     func selectAllText() {
@@ -1081,8 +994,7 @@ final class AppState {
         errorDetail = nil
         streamingText = ""
         isProcessing = false
-        isEditing = false
-        editingText = ""
+        editingDrafts.removeAll()
         isAdHocPromptActive = false
         adHocPromptText = ""
     }

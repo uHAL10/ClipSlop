@@ -15,6 +15,9 @@ struct ChatInputTextView: NSViewRepresentable {
     /// the field to fit — including wrapped text pasted with no newlines, which
     /// a newline count would miss. Optional so `AdHocPromptBar` is unaffected.
     var onContentHeightChange: ((CGFloat) -> Void)? = nil
+    var autofocus = true
+    var onCreate: ((NSTextView) -> Void)? = nil
+    var onFocusChange: ((Bool) -> Void)? = nil
 
     func makeNSView(context: Context) -> NSScrollView {
         // TextKit 1 stack — see SearchableTextView for the macOS 26
@@ -29,13 +32,14 @@ struct ChatInputTextView: NSViewRepresentable {
         textContainer.lineFragmentPadding = 0
         layoutManager.addTextContainer(textContainer)
 
-        let textView = NSTextView(frame: .zero, textContainer: textContainer)
+        let textView = FocusReportingTextView(frame: .zero, textContainer: textContainer)
         textView.isRichText = false
         textView.allowsUndo = true
         textView.font = NSFont.preferredFont(forTextStyle: .body)
         textView.textContainerInset = NSSize(width: 0, height: verticalInset)
         textView.drawsBackground = false
         textView.delegate = context.coordinator
+        textView.onFocusChange = onFocusChange
         textView.string = text
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
@@ -55,11 +59,12 @@ struct ChatInputTextView: NSViewRepresentable {
         scrollView.autohidesScrollers = true
         scrollView.drawsBackground = false
         scrollView.documentView = textView
+        onCreate?(textView)
 
         // Focus once the panel has finished ordering front — the view isn't
         // in a window yet at makeNSView time. Report the starting height too.
         DispatchQueue.main.async {
-            textView.window?.makeFirstResponder(textView)
+            if autofocus { textView.window?.makeFirstResponder(textView) }
             context.coordinator.reportHeight(textView)
         }
 
@@ -68,6 +73,7 @@ struct ChatInputTextView: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         context.coordinator.onContentHeightChange = onContentHeightChange
+        (scrollView.documentView as? FocusReportingTextView)?.onFocusChange = onFocusChange
         guard let textView = scrollView.documentView as? NSTextView else { return }
         // Programmatic sets don't fire textDidChange, so no feedback loop.
         if textView.string != text {
@@ -92,6 +98,7 @@ struct ChatInputTextView: NSViewRepresentable {
             self.onContentHeightChange = onContentHeightChange
         }
 
+
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
             text.wrappedValue = textView.string
@@ -109,5 +116,21 @@ struct ChatInputTextView: NSViewRepresentable {
             let used = layoutManager.usedRect(for: container).height
             onContentHeightChange(used + verticalInset * 2)
         }
+    }
+}
+
+final class FocusReportingTextView: NSTextView {
+    var onFocusChange: ((Bool) -> Void)?
+
+    override func becomeFirstResponder() -> Bool {
+        let accepted = super.becomeFirstResponder()
+        if accepted { onFocusChange?(true) }
+        return accepted
+    }
+
+    override func resignFirstResponder() -> Bool {
+        let accepted = super.resignFirstResponder()
+        if accepted { onFocusChange?(false) }
+        return accepted
     }
 }

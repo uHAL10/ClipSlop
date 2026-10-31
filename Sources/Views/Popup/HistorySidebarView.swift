@@ -9,7 +9,7 @@ struct HistorySidebarView: View {
             VStack(spacing: 2) {
                 if let session = appState.currentSession {
                     // Newest steps first
-                    ForEach(Array(session.steps.enumerated().reversed()), id: \.element.id) { index, step in
+                    ForEach(Self.visibleSteps(in: session), id: \.element.id) { index, step in
                         historyItem(
                             index: index,
                             label: step.promptName,
@@ -18,6 +18,14 @@ struct HistorySidebarView: View {
                             isSelected: isStepSelected(index, session: session),
                             isPending: step.isPending
                         )
+                    }
+
+                    if let index = session.steps.firstIndex(where: \.isPending),
+                       appState.selectedHistoryStepIndex != nil && appState.selectedHistoryStepIndex != index {
+                        Button(loc.t("popup.processing")) {
+                            appState.selectHistoryStep(at: index)
+                        }
+                        .controlSize(.small)
                     }
 
                     // Original text at the bottom
@@ -30,28 +38,16 @@ struct HistorySidebarView: View {
                             isSelected: appState.isViewingOriginal
                         )
 
-                        if appState.isViewingOriginal {
-                            Picker("", selection: Bindable(appState).originalViewMode) {
-                                Text("Plain").tag(RichTextMode.plainText)
-                                Text("HTML").tag(RichTextMode.html)
-                                Text("MD").tag(RichTextMode.markdown)
-                                Text("MD (AI)").tag(RichTextMode.markdownAI)
-                            }
-                            .pickerStyle(.segmented)
-                            .controlSize(.mini)
-                            .padding(.horizontal, 4)
-                            .onChange(of: appState.originalViewMode) { _, newMode in
-                                if newMode == .markdownAI {
-                                    appState.convertOriginalWithAI()
-                                }
-                            }
-                        }
                     }
                 }
             }
             .padding(6)
         }
         .background(.background.opacity(0.3))
+    }
+
+    static func visibleSteps(in session: TransformationSession) -> [(offset: Int, element: TransformationStep)] {
+        Array(session.steps.enumerated().filter { !$0.element.isPending }.reversed())
     }
 
     private func isStepSelected(_ index: Int, session: TransformationSession) -> Bool {
@@ -96,12 +92,25 @@ struct HistorySidebarView: View {
                 }
 
                 Spacer(minLength: 0)
+
+                if isSelected && appState.hasUnappliedEdit {
+                    Circle()
+                        .fill(.white)
+                        .frame(width: 8, height: 8)
+                        .accessibilityLabel(loc.t("misc.manual_edit"))
+                }
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
             .contentShape(Rectangle())
             .background(isSelected ? Color.accentColor : Color.clear)
             .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay {
+                if isSource(index) {
+                    RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(Color.blue, lineWidth: 2)
+                }
+            }
         }
         .buttonStyle(.plain)
         .contextMenu {
@@ -113,5 +122,14 @@ struct HistorySidebarView: View {
                 }
             }
         }
+    }
+
+    private func isSource(_ index: Int) -> Bool {
+        guard let session = appState.currentSession else { return false }
+        let selected = appState.selectedHistoryStepIndex ?? (session.steps.count - 1)
+        guard session.steps.indices.contains(selected) else { return false }
+        let sourceID = session.steps[selected].sourceStepID
+        if index == -1 { return sourceID == nil }
+        return session.steps.indices.contains(index) && session.steps[index].id == sourceID
     }
 }

@@ -84,126 +84,101 @@ enum MarkdownEditorStyle: String, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue }
 }
 
-enum RichTextMode: String, CaseIterable, Identifiable, Sendable {
-    case plainText
-    case html
-    case markdown
-    case markdownAI
-
-    var id: String { rawValue }
-}
-
 @MainActor
 @Observable
 final class AppSettings {
     static let shared = AppSettings()
 
     var streamingEnabled: Bool {
-        didSet { UserDefaults.standard.set(streamingEnabled, forKey: "streamingEnabled") }
+        didSet { Constants.userDefaults.set(streamingEnabled, forKey: "streamingEnabled") }
     }
 
     var showInDock: Bool {
-        didSet { UserDefaults.standard.set(showInDock, forKey: "showInDock") }
+        didSet { Constants.userDefaults.set(showInDock, forKey: "showInDock") }
     }
 
     var hasCompletedOnboarding: Bool {
-        didSet { UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding") }
+        didSet { Constants.userDefaults.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding") }
     }
 
     var selectedProviderID: String {
-        didSet { UserDefaults.standard.set(selectedProviderID, forKey: "selectedProviderID") }
+        didSet { Constants.userDefaults.set(selectedProviderID, forKey: "selectedProviderID") }
     }
 
     var popupOpacity: Double {
-        didSet { UserDefaults.standard.set(popupOpacity, forKey: "popupOpacity") }
+        didSet { Constants.userDefaults.set(popupOpacity, forKey: "popupOpacity") }
     }
 
     var popupWidth: Double {
-        didSet { UserDefaults.standard.set(popupWidth, forKey: "popupWidth") }
+        didSet { Constants.userDefaults.set(popupWidth, forKey: "popupWidth") }
     }
 
     var popupHeight: Double {
-        didSet { UserDefaults.standard.set(popupHeight, forKey: "popupHeight") }
+        didSet { Constants.userDefaults.set(popupHeight, forKey: "popupHeight") }
     }
 
     var hideMenuBarIcon: Bool {
-        didSet { UserDefaults.standard.set(hideMenuBarIcon, forKey: "hideMenuBarIcon") }
+        didSet { Constants.userDefaults.set(hideMenuBarIcon, forKey: "hideMenuBarIcon") }
     }
 
     var hideDockIcon: Bool {
-        didSet { UserDefaults.standard.set(hideDockIcon, forKey: "hideDockIcon") }
+        didSet { Constants.userDefaults.set(hideDockIcon, forKey: "hideDockIcon") }
     }
 
     var iCloudSyncEnabled: Bool {
-        didSet { UserDefaults.standard.set(iCloudSyncEnabled, forKey: "iCloudSyncEnabled") }
+        didSet { Constants.userDefaults.set(iCloudSyncEnabled, forKey: "iCloudSyncEnabled") }
     }
 
     var useKeyCodes: Bool {
-        didSet { UserDefaults.standard.set(useKeyCodes, forKey: "useKeyCodes") }
+        didSet { Constants.userDefaults.set(useKeyCodes, forKey: "useKeyCodes") }
     }
 
     var showImagesInMarkdown: Bool {
-        didSet { UserDefaults.standard.set(showImagesInMarkdown, forKey: "showImagesInMarkdown") }
+        didSet { Constants.userDefaults.set(showImagesInMarkdown, forKey: "showImagesInMarkdown") }
     }
 
     var markdownRenderer: MarkdownRenderer {
-        didSet { UserDefaults.standard.set(markdownRenderer.rawValue, forKey: "markdownRenderer") }
+        didSet { Constants.userDefaults.set(markdownRenderer.rawValue, forKey: "markdownRenderer") }
     }
 
     /// Renderer used for read-only Markdown. Applies whenever the display
     /// format is Markdown, so the workspace picker stays a single "Markdown".
     var markdownViewer: MarkdownViewerStyle {
-        didSet { UserDefaults.standard.set(markdownViewer.rawValue, forKey: "markdownViewer") }
+        didSet { Constants.userDefaults.set(markdownViewer.rawValue, forKey: "markdownViewer") }
     }
 
     /// Renderer used while editing Markdown — chosen independently of
     /// `markdownViewer`, so e.g. rendered viewing + plain editing is valid.
     var markdownEditor: MarkdownEditorStyle {
-        didSet { UserDefaults.standard.set(markdownEditor.rawValue, forKey: "markdownEditor") }
+        didSet { Constants.userDefaults.set(markdownEditor.rawValue, forKey: "markdownEditor") }
     }
 
     var preserveImageWidths: Bool {
-        didSet { UserDefaults.standard.set(preserveImageWidths, forKey: "preserveImageWidths") }
+        didSet { Constants.userDefaults.set(preserveImageWidths, forKey: "preserveImageWidths") }
     }
 
     var closeOnEscape: Bool {
-        didSet { UserDefaults.standard.set(closeOnEscape, forKey: "closeOnEscape") }
+        didSet { Constants.userDefaults.set(closeOnEscape, forKey: "closeOnEscape") }
     }
 
     var closeOnCopy: Bool {
-        didSet { UserDefaults.standard.set(closeOnCopy, forKey: "closeOnCopy") }
+        didSet { Constants.userDefaults.set(closeOnCopy, forKey: "closeOnCopy") }
     }
 
     var appColorScheme: AppColorScheme {
-        didSet { UserDefaults.standard.set(appColorScheme.rawValue, forKey: "appColorScheme") }
+        didSet { Constants.userDefaults.set(appColorScheme.rawValue, forKey: "appColorScheme") }
     }
 
     var editorMode: EditorMode {
-        didSet { UserDefaults.standard.set(editorMode.rawValue, forKey: "editorMode") }
-    }
-
-    var richTextMode: RichTextMode {
-        didSet { UserDefaults.standard.set(richTextMode.rawValue, forKey: "richTextMode") }
-    }
-
-    var markdownAIOnlyRichText: Bool {
-        didSet { UserDefaults.standard.set(markdownAIOnlyRichText, forKey: "markdownAIOnlyRichText") }
-    }
-
-    var useCustomConversionPrompt: Bool {
-        didSet { UserDefaults.standard.set(useCustomConversionPrompt, forKey: "useCustomConversionPrompt") }
-    }
-
-    var customConversionPrompt: String {
-        didSet { UserDefaults.standard.set(customConversionPrompt, forKey: "customConversionPrompt") }
+        didSet { Constants.userDefaults.set(editorMode.rawValue, forKey: "editorMode") }
     }
 
     var suppressPermissionAlert: Bool {
-        didSet { UserDefaults.standard.set(suppressPermissionAlert, forKey: "suppressPermissionAlert") }
+        didSet { Constants.userDefaults.set(suppressPermissionAlert, forKey: "suppressPermissionAlert") }
     }
 
     var useDefaultPrompts: Bool {
-        didSet { UserDefaults.standard.set(useDefaultPrompts, forKey: "useDefaultPrompts") }
+        didSet { Constants.userDefaults.set(useDefaultPrompts, forKey: "useDefaultPrompts") }
     }
 
     /// Fingerprint of the bundled default prompt set that was last written to
@@ -212,12 +187,12 @@ final class AppSettings {
     /// (keep it) — both look like "disk differs from the bundled defaults".
     var promptLibraryDefaultsStamp: String? {
         didSet {
-            UserDefaults.standard.set(promptLibraryDefaultsStamp, forKey: "promptLibraryDefaultsStamp")
+            Constants.userDefaults.set(promptLibraryDefaultsStamp, forKey: "promptLibraryDefaultsStamp")
         }
     }
 
     var useDefaultQuickAccess: Bool {
-        didSet { UserDefaults.standard.set(useDefaultQuickAccess, forKey: "useDefaultQuickAccess") }
+        didSet { Constants.userDefaults.set(useDefaultQuickAccess, forKey: "useDefaultQuickAccess") }
     }
 
     /// Publishes prompt names and folder paths to the system-wide Spotlight index
@@ -227,7 +202,7 @@ final class AppSettings {
     /// this off deletes everything ClipSlop previously indexed.
     var spotlightIndexingEnabled: Bool {
         didSet {
-            UserDefaults.standard.set(spotlightIndexingEnabled, forKey: "spotlightIndexingEnabled")
+            Constants.userDefaults.set(spotlightIndexingEnabled, forKey: "spotlightIndexingEnabled")
             PromptSpotlightIndexer.shared.settingChanged(enabled: spotlightIndexingEnabled)
         }
     }
@@ -235,7 +210,7 @@ final class AppSettings {
     /// Collapses the prompt navigator in the popup to just the breadcrumb
     /// row — for users who drive prompts by mnemonics and want the space back.
     var promptLibraryCollapsed: Bool {
-        didSet { UserDefaults.standard.set(promptLibraryCollapsed, forKey: "promptLibraryCollapsed") }
+        didSet { Constants.userDefaults.set(promptLibraryCollapsed, forKey: "promptLibraryCollapsed") }
     }
 
     // Magic Button debug logging moved to `debug_log_enabled` in
@@ -247,7 +222,7 @@ final class AppSettings {
     /// instruction replaces `{instruction}`, or is appended when the
     /// placeholder is absent — see `AdHocPromptComposer`.
     var adHocSystemPrompt: String {
-        didSet { UserDefaults.standard.set(adHocSystemPrompt, forKey: "adHocSystemPrompt") }
+        didSet { Constants.userDefaults.set(adHocSystemPrompt, forKey: "adHocSystemPrompt") }
     }
 
     static let defaultAdHocSystemPrompt = """
@@ -260,18 +235,9 @@ final class AppSettings {
     {instruction}
     """
 
-    static let defaultConversionPrompt = """
-    Convert the following HTML to clean, well-structured Markdown. \
-    Extract only meaningful content. Skip all presentational HTML \
-    (layout tables, spacers, style attributes, tracking pixels). \
-    Preserve headings, links, images with alt text, lists, and text formatting (bold, italic). \
-    For data that looks tabular, use Markdown tables. \
-    Output ONLY the Markdown, no explanations or commentary.
-    """
-
     private init() {
         // Load from UserDefaults (didSet does NOT fire during init)
-        let defaults = UserDefaults.standard
+        let defaults = Constants.userDefaults
         streamingEnabled = defaults.object(forKey: "streamingEnabled") as? Bool ?? true
         showInDock = defaults.bool(forKey: "showInDock")
         hasCompletedOnboarding = defaults.bool(forKey: "hasCompletedOnboarding")
@@ -300,11 +266,6 @@ final class AppSettings {
             .flatMap(MarkdownViewerStyle.init(rawValue:)) ?? .rendered
         markdownEditor = defaults.string(forKey: "markdownEditor")
             .flatMap(MarkdownEditorStyle.init(rawValue:)) ?? .colored
-        richTextMode = defaults.string(forKey: "richTextMode")
-            .flatMap(RichTextMode.init(rawValue:)) ?? .markdown
-        markdownAIOnlyRichText = defaults.object(forKey: "markdownAIOnlyRichText") as? Bool ?? true
-        useCustomConversionPrompt = defaults.bool(forKey: "useCustomConversionPrompt")
-        customConversionPrompt = defaults.string(forKey: "customConversionPrompt") ?? AppSettings.defaultConversionPrompt
         suppressPermissionAlert = defaults.bool(forKey: "suppressPermissionAlert")
         useDefaultPrompts = defaults.object(forKey: "useDefaultPrompts") as? Bool ?? true
         promptLibraryDefaultsStamp = defaults.string(forKey: "promptLibraryDefaultsStamp")

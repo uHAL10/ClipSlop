@@ -65,8 +65,7 @@ struct ShortcutsCheatSheetView: View {
                     ])
 
                     section(loc.t("shortcuts.section.editing"), rows: [
-                        ("⌘↩", loc.t("popup.done")),
-                        ("Esc", loc.t("popup.cancel")),
+                        ("⌘S", loc.t("misc.manual_edit")),
                     ])
                 }
 
@@ -76,9 +75,7 @@ struct ShortcutsCheatSheetView: View {
                         ("⌃⌘C", loc.t("popup.copy_and_close")),
                         ("⌃⌘V", loc.t("popup.copy_close_paste")),
                         ("⌘A", loc.t("popup.select_all")),
-                        ("⌘E", loc.t("popup.edit")),
                         ("⌘O", loc.t("popup.open")),
-                        ("⌘S", loc.t("popup.save")),
                         ("⌘F", loc.t("popup.hint.find")),
                         ("⌘G", loc.t("shortcuts.find_next")),
                         ("⇧⌘G", loc.t("shortcuts.find_prev")),
