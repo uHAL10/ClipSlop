@@ -8,18 +8,18 @@ import SwiftUI
 
 struct PopupContentView: View {
     let appState: AppState
-    @State private var promptGridHeight: Double = Constants.userDefaults.object(forKey: "promptGridHeight") as? Double ?? 80
-    @State private var dragStartHeight: Double = 0
+    @State private var promptListWidth: Double = Constants.userDefaults.object(forKey: "promptListWidth") as? Double ?? 240
+    @State private var dragStartWidth: Double = 0
+    @State private var showShortcutHints = false
     private let loc = Loc.shared
 
-    /// Cached HTML conversion of markdown for search mode.
-    private var markdownAsHTML: String {
-        MarkdownConverter.html(from: appState.currentDisplayText)
+    private var libraryCollapsed: Bool {
+        appState.settings.promptLibraryCollapsed && !appState.promptSearchState.isActive
     }
 
     var body: some View {
         HStack(spacing: 0) {
-            if appState.currentSession != nil, !appState.isEditing {
+            if appState.currentSession != nil {
                 HistorySidebarView(appState: appState)
                     .frame(width: 180)
                 Divider()
@@ -31,8 +31,7 @@ struct PopupContentView: View {
                     errorView(error)
                 } else if appState.shouldShowProcessingView {
                     ProcessingView(appState: appState)
-                } else if appState.isEditing {
-                    editView
+
                 } else {
                     mainContentArea
                 }
@@ -56,318 +55,174 @@ struct PopupContentView: View {
 
     private var mainContentArea: some View {
         GeometryReader { geo in
-            let maxPromptHeight = max(80, geo.size.height - 200)
-            let clampedHeight = min(promptGridHeight, maxPromptHeight)
-            // "/" search temporarily reveals the library even when collapsed —
-            // the results list is the whole point of searching.
-            let libraryCollapsed = appState.settings.promptLibraryCollapsed
-                && !appState.promptSearchState.isActive
+            // Space scrolls the widest scroll view, so the text area must stay wider.
+            let maxPromptWidth = max(160, min(400, (geo.size.width - 8) / 2 - 1))
+            let clampedWidth = min(max(160, promptListWidth), maxPromptWidth)
 
             VStack(spacing: 0) {
-                // Find bar
-                if appState.findBarState.isVisible {
-                    FindBarView(findBarState: appState.findBarState)
-                    Divider()
-                }
-
-                // Text display — takes all remaining vertical space
-                Group {
-                    switch appState.activeEditorMode {
-                    case .markdown:
-                        // Which Markdown renderer is a separate setting, so the
-                        // display picker stays a single "Markdown" entry.
-                        switch appState.settings.markdownViewer {
-                        case .rendered:
-                            if appState.findBarState.isVisible {
-                                // Textual is native StructuredText with no search
-                                // hook — swap to HTML so JS highlighting works.
-                                // The other two viewers are SearchableContent
-                                // already and need no swap.
-                                HTMLEditorView(
-                                    text: .constant(markdownAsHTML),
-                                    isEditable: false,
-                                    findBarState: appState.findBarState
-                                )
-                                .id("md-search")
-                            } else {
-                                MarkdownPreviewView(markdown: appState.currentDisplayText)
-                                    .id("md-preview")
-                            }
-                        case .colored:
-                            MarkdownTextView(
-                                text: .constant(appState.currentDisplayText),
-                                editorContext: markdownViewerContext,
-                                findBarState: appState.findBarState,
-                                highlighting: .markdown,
-                                isEditable: false
-                            )
-                            .id("md-colored-view")
-                        case .styled:
-                            MarkdownEngineView(
-                                text: .constant(appState.currentDisplayText),
-                                isEditable: false,
-                                findBarState: appState.findBarState
-                            )
-                            .id("md-styled-view")
+                HStack(spacing: 0) {
+                    VStack(spacing: 0) {
+                        // Find bar
+                        if appState.findBarState.isVisible {
+                            FindBarView(findBarState: appState.findBarState)
+                            Divider()
                         }
-                    case .html:
-                        HTMLEditorView(text: .constant(appState.currentDisplayText), isEditable: false, findBarState: appState.findBarState)
-                            .id("html-view")
-                    case .plainText:
-                        SearchableTextView(
-                            text: appState.currentDisplayText,
-                            findBarState: appState.findBarState
+
+                        MarkdownTextView(
+                            text: Bindable(appState).editingText,
+                            editorContext: plainTextEditorContext,
+                            findBarState: appState.findBarState,
+                            isEditable: !appState.isProcessing
                         )
-                        // NSTextView's own I-beam gets reset by SwiftUI's
-                        // pointer management — declare it at the SwiftUI layer.
+                        .frame(maxHeight: .infinity)
                         .pointerStyle(.horizontalText)
+
+                        AdHocPromptBar(appState: appState)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    Group {
+                        Divider()
+                            .frame(width: libraryCollapsed ? 1 : 8)
+                            .overlay {
+                                if !libraryCollapsed {
+                                    Rectangle()
+                                        .fill(.clear)
+                                        .contentShape(Rectangle())
+                                        .frame(width: 8)
+                                        .gesture(
+                                            DragGesture(minimumDistance: 0)
+                                                .onChanged { value in
+                                                    if dragStartWidth == 0 {
+                                                        dragStartWidth = clampedWidth
+                                                    }
+                                                    promptListWidth = min(maxPromptWidth, max(160, dragStartWidth - value.translation.width))
+                                                }
+                                                .onEnded { _ in
+                                                    Constants.userDefaults.set(promptListWidth, forKey: "promptListWidth")
+                                                    dragStartWidth = 0
+                                                }
+                                        )
+                                        .pointerStyle(.columnResize)
+                                        .background(WindowDragBlocker())
+                                }
+                            }
+
+                        if libraryCollapsed {
+                            libraryToggle
+                                .frame(width: 32)
+                                .frame(maxHeight: .infinity, alignment: .top)
+                        } else {
+                            promptSidebar
+                                .frame(width: clampedWidth)
+                        }
                     }
                 }
                 .frame(maxHeight: .infinity)
-                .onChange(of: appState.activeEditorMode) {
-                    // Clear search highlights when switching display modes to prevent
-                    // highlight HTML from leaking between renderers.
-                    appState.findBarState.clearAndReSearch()
-                }
 
-                // ⌘K one-off instruction input replaces the whole
-                // breadcrumb + prompt-grid block while active (it brings
-                // its own divider + resize handle).
-                if appState.isAdHocPromptActive {
-                    AdHocPromptBar(appState: appState)
-                } else {
+                Divider()
+                actionsBar
+            }
+        }
+    }
 
-                // Resize handle centered on divider (plain divider when the
-                // library is collapsed — there is nothing to resize)
-                if libraryCollapsed {
-                    Divider()
-                } else {
-                    ZStack {
-                        Divider()
-                        ResizeHandle(height: $promptGridHeight, dragStartHeight: $dragStartHeight)
-                            .frame(height: 8)
-                    }
-                }
-
-                // Search mode replaces the breadcrumb with a search input —
-                // the breadcrumb is meaningless when results span every folder.
-                if appState.promptSearchState.isActive {
-                    PromptSearchBar(searchState: appState.promptSearchState)
-                } else {
-                    HStack(spacing: 4) {
-                    Image(systemName: "folder")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-
-                    if appState.navigationPath.isEmpty {
-                        Text(loc.t("popup.prompts"))
-                            .font(.caption.bold())
-                    } else {
-                        Button {
-                            appState.navigateToRoot()
-                        } label: {
-                            Text(loc.t("popup.prompts"))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-
-                        ForEach(Array(appState.navigationPath.enumerated()), id: \.element.id) { i, node in
-                            Image(systemName: "chevron.right")
+    private var promptSidebar: some View {
+        VStack(spacing: 0) {
+            if appState.promptSearchState.isActive {
+                PromptSearchBar(searchState: appState.promptSearchState)
+                PromptSearchList(appState: appState, searchState: appState.promptSearchState)
+            } else {
+                HStack(spacing: 4) {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "folder")
                                 .font(.caption2)
                                 .foregroundStyle(.tertiary)
-                            if i < appState.navigationPath.count - 1 {
+
+                            if appState.navigationPath.isEmpty {
+                                Text(loc.t("popup.prompts"))
+                                    .font(.caption.bold())
+                            } else {
                                 Button {
-                                    appState.navigationPath = Array(appState.navigationPath.prefix(i + 1))
+                                    appState.navigateToRoot()
                                 } label: {
-                                    Text(node.name)
+                                    Text(loc.t("popup.prompts"))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
                                 .buttonStyle(.plain)
-                            } else {
-                                Text(node.name)
-                                    .font(.caption.bold())
+
+                                ForEach(Array(appState.navigationPath.enumerated()), id: \.element.id) { i, node in
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                    if i < appState.navigationPath.count - 1 {
+                                        Button {
+                                            appState.navigationPath = Array(appState.navigationPath.prefix(i + 1))
+                                        } label: {
+                                            Text(node.name)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                        .buttonStyle(.plain)
+                                    } else {
+                                        Text(node.name)
+                                            .font(.caption.bold())
+                                    }
+                                }
                             }
                         }
                     }
-
-                    Spacer()
 
                     if !appState.navigationPath.isEmpty {
                         Button {
                             appState.navigateBack()
                         } label: {
-                            HStack(spacing: 2) {
-                                Image(systemName: "chevron.left")
-                                Text(loc.t("popup.back"))
-                            }
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            Image(systemName: "chevron.left")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(width: 24, height: 24)
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .help(loc.t("popup.back"))
                     }
 
-                    Button {
-                        appState.settings.promptLibraryCollapsed.toggle()
-                    } label: {
-                        Image(systemName: libraryCollapsed ? "chevron.up" : "chevron.down")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            // The bare glyph is a ~10pt sliver — give the
-                            // button a real hit target.
-                            .frame(width: 32, height: 20)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .help("\(loc.t("popup.hint.library")) (⌘L)")
-                    .background(WindowDragBlocker())
+                    libraryToggle
                 }
-                .padding(.horizontal, 12)
+                .padding(.leading, 12)
                 .padding(.vertical, 6)
-                }
 
-            // Prompt navigator — "/" toggles between folder grid and flat
-            // scored search across every prompt in the library. Hidden
-            // entirely in collapsed mode; the breadcrumb row above stays as
-            // a compact reference (mnemonic keys keep working regardless).
-            if !libraryCollapsed {
-                Group {
-                    if appState.promptSearchState.isActive {
-                        PromptSearchList(
-                            appState: appState,
-                            searchState: appState.promptSearchState
-                        )
-                    } else {
-                        ScrollView(.vertical, showsIndicators: true) {
-                            LazyVGrid(
-                                columns: [GridItem(.adaptive(minimum: 150), spacing: 6)],
-                                spacing: 6
-                            ) {
-                                ForEach(appState.currentPrompts) { node in
-                                    PromptCard(node: node) {
-                                        appState.navigateInto(node)
-                                    }
-                                }
+                ScrollView(.vertical, showsIndicators: true) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(appState.currentPrompts) { node in
+                            PromptRow(node: node) {
+                                appState.navigateInto(node)
                             }
-                            .padding(12)
                         }
                     }
                 }
-                .frame(height: clampedHeight)
-            }
-
-            } // end of the non-⌘K breadcrumb + grid block
-
-            Divider()
-
-            actionsBar
-
-            shortcutsHint
             }
         }
+        .frame(maxHeight: .infinity)
+    }
+
+    private var libraryToggle: some View {
+        Button {
+            appState.settings.promptLibraryCollapsed.toggle()
+        } label: {
+            Image(systemName: libraryCollapsed ? "chevron.left" : "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(width: 32, height: 24)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("\(loc.t("popup.hint.library")) (⌘L)")
+        .background(WindowDragBlocker())
     }
 
     @State private var plainTextEditorContext = MarkdownEditorContext()
-    /// The read-only coloured Markdown viewer reuses `MarkdownTextView`, which
-    /// requires a context; keep it separate from the editing one.
-    @State private var markdownViewerContext = MarkdownEditorContext()
-
-    private var editView: some View {
-        VStack(spacing: 0) {
-            // Find bar in edit mode
-            if appState.findBarState.isVisible {
-                FindBarView(findBarState: appState.findBarState)
-                Divider()
-            }
-
-            Group {
-                switch appState.activeEditorMode {
-                case .markdown:
-                    // Editing renderer is its own setting — independent of the
-                    // viewer, so e.g. rendered viewing + plain editing works.
-                    switch appState.settings.markdownEditor {
-                    case .plain:
-                        MarkdownEditorView(
-                            text: Bindable(appState).editingText,
-                            findBarState: appState.findBarState,
-                            highlightsMarkdown: false
-                        )
-                    case .colored:
-                        MarkdownEditorView(
-                            text: Bindable(appState).editingText,
-                            findBarState: appState.findBarState,
-                            highlightsMarkdown: true
-                        )
-                    case .styled:
-                        MarkdownEngineView(
-                            text: Bindable(appState).editingText,
-                            findBarState: appState.findBarState
-                        )
-                    }
-                case .html:
-                    HTMLEditorView(text: Bindable(appState).editingText, findBarState: appState.findBarState)
-                case .plainText:
-                    MarkdownTextView(text: Bindable(appState).editingText, editorContext: plainTextEditorContext, findBarState: appState.findBarState)
-                }
-            }
-            .onAppear {
-                if appState.activeEditorMode != .html {
-                    focusEditor()
-                }
-            }
-
-            Divider()
-
-            HStack(spacing: 12) {
-                Button {
-                    appState.saveEdit()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "checkmark.circle")
-                        Text(loc.t("popup.done"))
-                        Text("⌘↩").foregroundStyle(.white.opacity(0.6))
-                    }
-                    .font(.caption)
-                }
-                .buttonStyle(AlwaysProminentButtonStyle())
-
-                Button {
-                    appState.cancelEdit()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "xmark.circle")
-                        Text(loc.t("popup.cancel"))
-                        Text("Esc").foregroundStyle(.tertiary)
-                    }
-                    .font(.caption)
-                }
-                .buttonStyle(.bordered)
-
-                Spacer()
-
-                Picker(loc.t("popup.display"), selection: Bindable(appState).activeEditorMode) {
-                    Text(loc.t("settings.general.behavior.editor_mode.plain")).tag(EditorMode.plainText)
-                    Text("HTML").tag(EditorMode.html)
-                    Text("Markdown").tag(EditorMode.markdown)
-                }
-                .frame(width: 175)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-        }
-    }
-
-    private func focusEditor() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            if let window = NSApp.windows.first(where: { $0 is PopupWindow }) {
-                if let textView = findTextView(in: window.contentView) {
-                    window.makeFirstResponder(textView)
-                }
-            }
-        }
-    }
-
     // MARK: - Actions Bar
 
     private var actionsBar: some View {
@@ -375,17 +230,8 @@ struct PopupContentView: View {
             copyButton
                 .allowsHitTesting(!Constants.isPreview)
 
-            actionButton(loc.t("popup.edit"), icon: "pencil", shortcut: "⌘E") {
-                appState.startEditing()
-            }
-
             actionButton(loc.t("popup.open"), icon: "square.and.arrow.up", shortcut: "⌘O") {
                 appState.openInTextEdit()
-            }
-            .allowsHitTesting(!Constants.isPreview)
-
-            actionButton(loc.t("popup.save"), icon: "square.and.arrow.down", shortcut: "⌘S") {
-                appState.saveToFile()
             }
             .allowsHitTesting(!Constants.isPreview)
 
@@ -429,6 +275,18 @@ struct PopupContentView: View {
                     appState.originalDisplayMode = newMode
                 }
             }
+
+            Button {
+                showShortcutHints.toggle()
+            } label: {
+                Image(systemName: "questionmark.circle")
+            }
+            .buttonStyle(.plain)
+            .help(loc.t("shortcuts.title"))
+            .accessibilityLabel(loc.t("shortcuts.title"))
+            .popover(isPresented: $showShortcutHints, arrowEdge: .bottom) {
+                shortcutsHint
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
@@ -439,38 +297,29 @@ struct PopupContentView: View {
     @ViewBuilder
     private var shortcutsHint: some View {
         if appState.isAdHocPromptActive {
-            HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
                 shortcutHint("↩", loc.t("popup.hint.adhoc_run"))
                 shortcutHint("⇧↩", loc.t("popup.hint.adhoc_newline"))
                 shortcutHint("Esc", loc.t("popup.hint.adhoc_exit"))
-                Spacer()
             }
-            .font(.caption2)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 6)
-            .background(.quaternary.opacity(0.3))
+            .font(.caption)
+            .padding(16)
         } else if appState.promptSearchState.isActive {
-            HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
                 shortcutHint("↑↓", loc.t("popup.hint.search_select"))
                 shortcutHint("↩", loc.t("popup.hint.search_run"))
                 shortcutHint("Esc", loc.t("popup.hint.search_exit"))
-                Spacer()
             }
-            .font(.caption2)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 6)
-            .background(.quaternary.opacity(0.3))
+            .font(.caption)
+            .padding(16)
         } else {
-            HStack(spacing: 16) {
-                // Up/Down walk the history chain (older ↓ / newer ↑).
-                // Page-scrolling is now Space and Shift+Space — the arrow
-                // keys are reserved for chain navigation so a single keypress
-                // never has two meanings depending on caret position.
+            VStack(alignment: .leading, spacing: 8) {
                 shortcutHint("↑↓", loc.t("popup.hint.history"))
                 shortcutHint("Space", loc.t("popup.hint.page_down"))
                 shortcutHint("⇧Space", loc.t("popup.hint.page_up"))
                 shortcutHint("/", loc.t("popup.hint.search"))
                 shortcutHint("⌘K", loc.t("popup.hint.adhoc"))
+                shortcutHint("⌘S", loc.t("misc.manual_edit"))
 
                 if !appState.navigationPath.isEmpty {
                     shortcutHint("⌫", loc.t("popup.hint.back"))
@@ -481,16 +330,13 @@ struct PopupContentView: View {
                 shortcutHint("⌘L", loc.t("popup.hint.library"))
                 shortcutHint("⌘/", loc.t("popup.hint.shortcuts"))
 
-                Spacer()
 
                 // Mnemonic hint
                 Text(loc.t("popup.mnemonic_hint"))
                     .foregroundStyle(.tertiary)
             }
-            .font(.caption2)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 6)
-            .background(.quaternary.opacity(0.3))
+            .font(.caption)
+            .padding(16)
         }
     }
 
@@ -646,14 +492,6 @@ struct PopupContentView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func findTextView(in view: NSView?) -> NSTextView? {
-        guard let view else { return nil }
-        if let textView = view as? NSTextView { return textView }
-        for subview in view.subviews {
-            if let found = findTextView(in: subview) { return found }
-        }
-        return nil
-    }
 }
 
 // MARK: - NSEvent-based key handler (works in NSPanel)
@@ -700,7 +538,6 @@ struct KeyEventHandler: NSViewRepresentable {
             static let d: UInt16 = 2
             static let c: UInt16 = 8
             static let v: UInt16 = 9
-            static let e: UInt16 = 14
             static let o: UInt16 = 31
             static let n: UInt16 = 45
             static let z: UInt16 = 6
@@ -726,7 +563,7 @@ struct KeyEventHandler: NSViewRepresentable {
             let hasCmd = flags.contains(.command)
             let hasControl = flags.contains(.control)
 
-            if Constants.isPreview && hasCmd && [KeyCode.c, KeyCode.v, KeyCode.o, KeyCode.s, KeyCode.comma].contains(code) {
+            if Constants.isPreview && hasCmd && [KeyCode.c, KeyCode.v, KeyCode.o, KeyCode.comma].contains(code) {
                 return false
             }
 
@@ -745,11 +582,14 @@ struct KeyEventHandler: NSViewRepresentable {
             }
 
             // --- Ad-hoc instruction bar (⌘K) ---
-            // Enter runs, Shift+Enter falls through to the TextEditor (which
-            // inserts a newline), Esc / ⌘K close. Every other key flows to
-            // the focused editor so typing and Cmd+A/C/V work normally.
+            if hasCmd && code == KeyCode.k {
+                appState.activateAdHocPrompt()
+                return true
+            }
+
+            // Enter runs; Shift+Enter inserts a newline.
             if appState.isAdHocPromptActive {
-                if code == KeyCode.escape || (hasCmd && code == KeyCode.k) {
+                if code == KeyCode.escape {
                     appState.deactivateAdHocPrompt()
                     return true
                 }
@@ -811,21 +651,9 @@ struct KeyEventHandler: NSViewRepresentable {
                 return true
             }
 
-            // --- Edit mode ---
-            if appState.isEditing {
-                if hasCmd && code == KeyCode.enter {
-                    appState.saveEdit()
-                    return true
-                }
-                if hasCmd && code == KeyCode.comma {
-                    appState.openSettings()
-                    return true
-                }
-                if code == KeyCode.escape {
-                    appState.cancelEdit()
-                    return true
-                }
-                return false
+            if hasCmd && code == KeyCode.s {
+                appState.saveEdit()
+                return true
             }
 
             // --- Normal mode ---
@@ -840,11 +668,6 @@ struct KeyEventHandler: NSViewRepresentable {
                 } else if appState.settings.closeOnEscape {
                     appState.dismissPopup()
                 }
-                return true
-            }
-
-            if hasCmd && code == KeyCode.e {
-                appState.startEditing()
                 return true
             }
 
@@ -878,24 +701,18 @@ struct KeyEventHandler: NSViewRepresentable {
                 return true
             }
 
-            if hasCmd && code == KeyCode.k {
-                appState.activateAdHocPrompt()
-                return true
-            }
-
             if hasCmd && code == KeyCode.o {
                 appState.openInTextEdit()
-                return true
-            }
-
-            if hasCmd && code == KeyCode.s {
-                appState.saveToFile()
                 return true
             }
 
             if hasCmd && code == KeyCode.comma {
                 appState.openSettings()
                 return true
+            }
+
+            if self.window?.firstResponder is MarkdownSourceTextView {
+                return false
             }
 
             if hasCmd && code == KeyCode.a {
@@ -1048,7 +865,7 @@ struct ResizeHandle: View {
     var minHeight: Double = 80
     var maxHeight: Double = 400
     /// UserDefaults key the final height is persisted under; nil = session-only.
-    var storageKey: String? = "promptGridHeight"
+    var storageKey: String? = nil
     /// Base height for the first drag when `height` is still 0 — used by the
     /// ⌘K bar, whose height is content-driven until the user grabs the handle.
     var initialHeight: (() -> Double)?

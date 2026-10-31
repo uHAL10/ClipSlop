@@ -70,19 +70,36 @@ final class AppState {
     var navigationPath: [PromptNode] = []
     var selectedHistoryStepIndex: Int?
 
-    // Edit mode
-    var isEditing = false
-    var editingText = ""
+    private var editingDrafts: [String: String] = [:]
+
+    private var editingDraftKey: String? {
+        guard let session = currentSession else { return nil }
+        if isViewingOriginal { return "\(session.id)-original-\(originalViewMode.rawValue)" }
+        let index = selectedHistoryStepIndex ?? (session.steps.count - 1)
+        guard session.steps.indices.contains(index) else { return nil }
+        return "\(session.id)-\(session.steps[index].id)"
+    }
+
+    var editingText: String {
+        get { editingDraftKey.flatMap { editingDrafts[$0] } ?? currentDisplayText }
+        set {
+            guard let key = editingDraftKey else { return }
+            editingDrafts[key] = newValue
+        }
+    }
+
+    var hasUnappliedEdit: Bool {
+        editingText != currentDisplayText
+    }
 
     // Shortcuts cheat-sheet overlay (⌘/) — session-only, never persisted
     var isShortcutsOverlayVisible = false
 
-    // Ad-hoc instruction bar (⌘K) — a one-off typed prompt that replaces
-    // the prompt-library block while active. The draft survives Esc so an
-    // accidental close doesn't eat a half-typed instruction; it's cleared
-    // after a successful run and when the popup closes.
+    // The instruction draft survives focus changes and is cleared after a run
+    // or when the popup closes.
     var isAdHocPromptActive = false
     var adHocPromptText = ""
+    @ObservationIgnored weak var adHocInputView: NSTextView?
 
     // Pending prompt for Open & Run shortcut
     var pendingPromptNode: PromptNode?
@@ -544,8 +561,6 @@ final class AppState {
         cachedOriginalMarkdown = nil
         cachedOriginalMarkdownAI = nil
         activeEditorMode = settings.editorMode
-        isEditing = true
-        editingText = ""
         showPopup()
     }
 
@@ -608,8 +623,7 @@ final class AppState {
         )
         navigationPath = []
         selectedHistoryStepIndex = nil
-        isEditing = false
-        editingText = ""
+        editingDrafts.removeAll()
         errorMessage = nil
         errorDetail = nil
         streamingText = ""
@@ -692,11 +706,11 @@ final class AppState {
     func activateAdHocPrompt() {
         guard !isProcessing, errorMessage == nil, currentSession != nil else { return }
         promptSearchState.deactivate()
-        isAdHocPromptActive = true
+        adHocInputView?.window?.makeFirstResponder(adHocInputView)
     }
 
     func deactivateAdHocPrompt() {
-        isAdHocPromptActive = false
+        adHocInputView?.window?.makeFirstResponder(nil)
     }
 
     /// Runs the typed one-off instruction through the configurable ad-hoc
@@ -711,7 +725,6 @@ final class AppState {
             : settings.adHocSystemPrompt
         let systemPrompt = AdHocPromptComposer.compose(template: template, instruction: instruction)
 
-        isAdHocPromptActive = false
         adHocPromptText = ""
         applyPrompt(name: AdHocPromptComposer.stepName(for: instruction), systemPrompt: systemPrompt)
     }
@@ -741,13 +754,12 @@ final class AppState {
         #if DEBUG
         // Preview interactions must not send sample text to an AI provider.
         if Constants.isPreview {
-            if let index = selectedHistoryStepIndex, index >= 0 {
-                session = session.steppingTo(index: index)
-            }
             currentSession = session.addingStep(
                 promptName: name,
                 outputText: "Preview: \(name)\n\n\(currentDisplayText)",
-                displayMode: activeEditorMode
+                displayMode: activeEditorMode,
+                inputText: currentDisplayText,
+                sourceIndex: selectedHistoryStepIndex
             )
             selectedHistoryStepIndex = nil
             return
@@ -760,11 +772,6 @@ final class AppState {
             return
         }
 
-        // If viewing a history step, truncate to that step first
-        if let index = selectedHistoryStepIndex, index >= 0 {
-            session = session.steppingTo(index: index)
-        }
-
         let inputText = currentDisplayText
 
         // Add a placeholder "tab" for the step that's about to run and
@@ -772,7 +779,7 @@ final class AppState {
         // shows up right away instead of only once the response finishes.
         // Tracked by id (not position) so it's still found correctly even
         // if other history steps are edited or deleted while it's in flight.
-        session = session.addingStep(promptName: name, outputText: "", displayMode: activeEditorMode, isPending: true)
+        session = session.addingStep(promptName: name, outputText: "", displayMode: activeEditorMode, isPending: true, inputText: inputText, sourceIndex: selectedHistoryStepIndex)
         pendingStepID = session.steps.last?.id
         currentSession = session
         selectedHistoryStepIndex = nil
@@ -911,39 +918,18 @@ final class AppState {
         }
     }
 
-    // MARK: - Edit Mode
-
-    func startEditing() {
-        // A background prompt may still be writing to the session (e.g. the
-        // user switched to an older tab while a newer one is generating) —
-        // block editing until it settles so a manual edit can't race with
-        // the pending step being finalized/dropped.
-        guard !isProcessing else { return }
-        editingText = currentDisplayText
-        isEditing = true
-    }
+    // MARK: - Manual edits
 
     func saveEdit() {
-        guard isEditing, let session = currentSession else { return }
-        let text = editingText
-        guard !text.isEmpty else {
-            isEditing = false
-            return
-        }
-
-        // If original text is empty (blank editor), set it as the original
-        if session.originalText.isEmpty {
-            currentSession = TransformationSession(originalText: text, inputSource: session.inputSource)
-        } else if text != currentDisplayText {
-            currentSession = session.addingStep(promptName: Loc.shared.t("misc.manual_edit"), outputText: text, displayMode: activeEditorMode)
-        }
+        guard !isProcessing, let session = currentSession, let key = editingDraftKey,
+              let text = editingDrafts[key], text != currentDisplayText else { return }
+        let input = currentDisplayText
+        currentSession = session.addingStep(
+            promptName: Loc.shared.t("misc.manual_edit"), outputText: text,
+            displayMode: activeEditorMode, inputText: input, sourceIndex: selectedHistoryStepIndex
+        )
+        editingDrafts.removeValue(forKey: key)
         selectedHistoryStepIndex = nil
-        isEditing = false
-    }
-
-    func cancelEdit() {
-        isEditing = false
-        editingText = ""
     }
 
     func openInTextEdit() {
@@ -955,23 +941,6 @@ final class AppState {
             .appendingPathExtension("txt")
         try? text.write(to: tempURL, atomically: true, encoding: .utf8)
         NSWorkspace.shared.open(tempURL)
-    }
-
-    func saveToFile() {
-        let text = currentDisplayText
-        guard !text.isEmpty else { return }
-
-        let panel = NSSavePanel()
-        panel.nameFieldStringValue = "ClipSlop output.txt"
-        panel.allowedContentTypes = [.plainText]
-
-        // Show as sheet on the popup window so it's not hidden behind it
-        if let window = popupWindow {
-            panel.beginSheetModal(for: window) { response in
-                guard response == .OK, let url = panel.url else { return }
-                try? text.write(to: url, atomically: true, encoding: .utf8)
-            }
-        }
     }
 
     func selectAllText() {
@@ -1097,8 +1066,7 @@ final class AppState {
         errorDetail = nil
         streamingText = ""
         isProcessing = false
-        isEditing = false
-        editingText = ""
+        editingDrafts.removeAll()
         isAdHocPromptActive = false
         adHocPromptText = ""
     }

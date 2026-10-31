@@ -1,14 +1,13 @@
 import SwiftUI
 
-/// Multi-line input for the ⌘K one-off instruction. Replaces the
-/// breadcrumb + prompt-grid block while active. Enter runs the instruction,
-/// Shift+Enter inserts a newline, Esc closes — all handled by the popup's
+/// Multi-line input for the ⌘K one-off instruction. Enter runs the instruction,
+/// Shift+Enter inserts a newline, Esc leaves the field — handled by the popup's
 /// `KeyEventHandler`; this view only owns the text, focus, and sizing.
 ///
 /// Sizing: starts one text line tall and grows a line per Shift+Enter up to
 /// `maxAutoLines`; beyond that the editor scrolls internally. Dragging the
 /// divider handle above switches to a manual height (session-only, resets on
-/// the next activation so the bar always reopens compact).
+/// next session).
 struct AdHocPromptBar: View {
     let appState: AppState
     /// 0 = automatic content sizing; > 0 = height picked with the handle.
@@ -56,12 +55,15 @@ struct AdHocPromptBar: View {
                 ChatInputTextView(
                     text: Bindable(appState).adHocPromptText,
                     verticalInset: Self.verticalInset / 2,
-                    onContentHeightChange: { contentHeight = $0 }
+                    onContentHeightChange: { contentHeight = $0 },
+                    autofocus: false,
+                    onCreate: { appState.adHocInputView = $0 },
+                    onFocusChange: { appState.isAdHocPromptActive = $0 }
                 )
                 .frame(height: editorHeight)
                 .overlay(alignment: .topLeading) {
                     if appState.adHocPromptText.isEmpty {
-                        Text(loc.t("popup.adhoc.placeholder"))
+                        Text(loc.t("popup.adhoc.placeholder") + " (⌘K)")
                             .font(.body)
                             .foregroundStyle(.tertiary)
                             .padding(.top, Self.verticalInset / 2)
@@ -88,9 +90,7 @@ struct AdHocPromptBar: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(.quaternary.opacity(0.25))
-            // The grab strip straddles the divider like the prompt-grid
-            // handle; overlaying it keeps the gray slab flush against the
-            // divider (a sibling strip would read as a light gap above it).
+            // Overlay the grab strip so the input stays flush against the divider.
             .overlay(alignment: .top) {
                 ResizeHandle(
                     height: $manualHeight,

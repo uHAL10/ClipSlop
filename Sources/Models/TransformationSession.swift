@@ -4,6 +4,7 @@ struct TransformationStep: Identifiable, Sendable {
     let id: UUID
     let promptName: String
     let inputText: String
+    let sourceStepID: UUID?
     let outputText: String
     let timestamp: Date
     let displayMode: EditorMode
@@ -17,6 +18,7 @@ struct TransformationStep: Identifiable, Sendable {
         id: UUID = UUID(),
         promptName: String,
         inputText: String,
+        sourceStepID: UUID? = nil,
         outputText: String,
         timestamp: Date = Date(),
         displayMode: EditorMode = .markdown,
@@ -25,6 +27,7 @@ struct TransformationStep: Identifiable, Sendable {
         self.id = id
         self.promptName = promptName
         self.inputText = inputText
+        self.sourceStepID = sourceStepID
         self.outputText = outputText
         self.timestamp = timestamp
         self.displayMode = displayMode
@@ -66,12 +69,15 @@ struct TransformationSession: Identifiable, Sendable {
     var stepCount: Int { steps.count }
     var hasSteps: Bool { !steps.isEmpty }
 
-    func addingStep(promptName: String, outputText: String, displayMode: EditorMode = .markdown, isPending: Bool = false) -> TransformationSession {
+    func addingStep(promptName: String, outputText: String, displayMode: EditorMode = .markdown, isPending: Bool = false, inputText: String? = nil, sourceIndex: Int? = nil) -> TransformationSession {
         var copy = self
+        let index = sourceIndex ?? (steps.count - 1)
+        precondition(index == -1 || steps.indices.contains(index))
         copy.steps.append(
             TransformationStep(
                 promptName: promptName,
-                inputText: currentText,
+                inputText: inputText ?? (index == -1 ? originalText : steps[index].outputText),
+                sourceStepID: index == -1 ? nil : steps[index].id,
                 outputText: outputText,
                 displayMode: displayMode,
                 isPending: isPending
@@ -93,6 +99,7 @@ struct TransformationSession: Identifiable, Sendable {
             id: existing.id,
             promptName: existing.promptName,
             inputText: existing.inputText,
+            sourceStepID: existing.sourceStepID,
             outputText: outputText,
             timestamp: existing.timestamp,
             displayMode: existing.displayMode,

@@ -644,6 +644,7 @@ struct MarkdownTextView: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
+        textView.isEditable = isEditable
         // Keep the coordinator's copy fresh: the Magic tab reuses one view
         // across file switches, so `highlighting` can change between updates.
         context.coordinator.parent = self

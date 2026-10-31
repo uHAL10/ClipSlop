@@ -96,12 +96,25 @@ struct HistorySidebarView: View {
                 }
 
                 Spacer(minLength: 0)
+
+                if isSelected && appState.hasUnappliedEdit {
+                    Circle()
+                        .fill(.white)
+                        .frame(width: 8, height: 8)
+                        .accessibilityLabel(loc.t("misc.manual_edit"))
+                }
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
             .contentShape(Rectangle())
             .background(isSelected ? Color.accentColor : Color.clear)
             .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay {
+                if isSource(index) {
+                    RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(Color.blue, lineWidth: 2)
+                }
+            }
         }
         .buttonStyle(.plain)
         .contextMenu {
@@ -113,5 +126,14 @@ struct HistorySidebarView: View {
                 }
             }
         }
+    }
+
+    private func isSource(_ index: Int) -> Bool {
+        guard let session = appState.currentSession else { return false }
+        let selected = appState.selectedHistoryStepIndex ?? (session.steps.count - 1)
+        guard session.steps.indices.contains(selected) else { return false }
+        let sourceID = session.steps[selected].sourceStepID
+        if index == -1 { return sourceID == nil }
+        return session.steps.indices.contains(index) && session.steps[index].id == sourceID
     }
 }

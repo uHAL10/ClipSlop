@@ -29,6 +29,12 @@ struct PopupEditorPreviewTests {
         #expect(state.currentDisplayText == "Preview: \(prompt.name)\n\n\(input)")
         #expect(!state.isProcessing)
 
+        state.selectHistoryStep(at: -1)
+        state.navigateInto(prompt)
+        #expect(state.currentSession?.steps.count == 2)
+        #expect(state.currentSession?.steps.last?.sourceStepID == nil)
+        #expect(state.currentSession?.steps.last?.inputText == input)
+
         state.promptSearchState.activate()
         state.promptSearchState.query = prompt.name
         #expect(state.promptSearchState.results.contains { $0.node.id == prompt.id })

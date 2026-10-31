@@ -15,6 +15,9 @@ struct ChatInputTextView: NSViewRepresentable {
     /// the field to fit — including wrapped text pasted with no newlines, which
     /// a newline count would miss. Optional so `AdHocPromptBar` is unaffected.
     var onContentHeightChange: ((CGFloat) -> Void)? = nil
+    var autofocus = true
+    var onCreate: ((NSTextView) -> Void)? = nil
+    var onFocusChange: ((Bool) -> Void)? = nil
 
     func makeNSView(context: Context) -> NSScrollView {
         // TextKit 1 stack — see SearchableTextView for the macOS 26
@@ -55,11 +58,12 @@ struct ChatInputTextView: NSViewRepresentable {
         scrollView.autohidesScrollers = true
         scrollView.drawsBackground = false
         scrollView.documentView = textView
+        onCreate?(textView)
 
         // Focus once the panel has finished ordering front — the view isn't
         // in a window yet at makeNSView time. Report the starting height too.
         DispatchQueue.main.async {
-            textView.window?.makeFirstResponder(textView)
+            if autofocus { textView.window?.makeFirstResponder(textView) }
             context.coordinator.reportHeight(textView)
         }
 
@@ -68,6 +72,7 @@ struct ChatInputTextView: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         context.coordinator.onContentHeightChange = onContentHeightChange
+        context.coordinator.onFocusChange = onFocusChange
         guard let textView = scrollView.documentView as? NSTextView else { return }
         // Programmatic sets don't fire textDidChange, so no feedback loop.
         if textView.string != text {
@@ -77,7 +82,7 @@ struct ChatInputTextView: NSViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text, verticalInset: verticalInset, onContentHeightChange: onContentHeightChange)
+        Coordinator(text: $text, verticalInset: verticalInset, onContentHeightChange: onContentHeightChange, onFocusChange: onFocusChange)
     }
 
     @MainActor
@@ -85,12 +90,17 @@ struct ChatInputTextView: NSViewRepresentable {
         private let text: Binding<String>
         private let verticalInset: CGFloat
         var onContentHeightChange: ((CGFloat) -> Void)?
+        var onFocusChange: ((Bool) -> Void)?
 
-        init(text: Binding<String>, verticalInset: CGFloat, onContentHeightChange: ((CGFloat) -> Void)?) {
+        init(text: Binding<String>, verticalInset: CGFloat, onContentHeightChange: ((CGFloat) -> Void)?, onFocusChange: ((Bool) -> Void)?) {
             self.text = text
             self.verticalInset = verticalInset
             self.onContentHeightChange = onContentHeightChange
+            self.onFocusChange = onFocusChange
         }
+
+        func textDidBeginEditing(_ notification: Notification) { onFocusChange?(true) }
+        func textDidEndEditing(_ notification: Notification) { onFocusChange?(false) }
 
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
