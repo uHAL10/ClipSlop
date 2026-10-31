@@ -294,7 +294,7 @@ struct ProviderDetailView: View {
                         Picker(loc.t("settings.providers.reasoning_effort"), selection: $reasoningEffort) {
                             Text(loc.t("settings.providers.reasoning_effort.unset"))
                                 .tag(ReasoningEffort?.none)
-                            ForEach(provider.providerType.supportedReasoningEfforts) { effort in
+                            ForEach(provider.supportedReasoningEfforts) { effort in
                                 Text(effort.displayName).tag(ReasoningEffort?.some(effort))
                             }
                         }

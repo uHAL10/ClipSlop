@@ -70,4 +70,17 @@ struct CLIToolInvocationTests {
         config.reasoningEffort = .max
         #expect(config.effectiveReasoningEffort == nil)
     }
+
+    @Test func agyAcceptsMaxEffort() {
+        var config = AIProviderConfig(name: "AGY", providerType: .cliTool, modelID: "agy/model")
+        config.reasoningEffort = .max
+        #expect(config.supportedReasoningEfforts.contains(.max))
+        #expect(config.effectiveReasoningEffort == "max")
+        let args = CLIToolDefinition.find(byID: "agy")!.buildArguments("hi", "", nil, "model", config.effectiveReasoningEffort)
+        #expect(args.contains("--effort"))
+        #expect(args.contains("max"))
+        config.modelID = "claude/sonnet"
+        #expect(!config.supportedReasoningEfforts.contains(.max))
+        #expect(config.effectiveReasoningEffort == nil)
+    }
 }
